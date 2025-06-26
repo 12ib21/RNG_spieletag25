@@ -1,4 +1,4 @@
-let coinsInserted = 0;
+let coins = 100;
 
 // WebSocket connection to coin server
     const socket = new WebSocket('ws://localhost:8080');
@@ -18,14 +18,14 @@ let coinsInserted = 0;
     };
 
 function insertCoin() {
-    coinsInserted++;
-    console.log(`Coin inserted. Total coins: ${coinsInserted}`);
+    coins++;
+    console.log(`Coin inserted. Total coins: ${coins}`);
 }
 
 // Function to simulate spinning the slot machine
 function spinSlots() {
-    if (coinsInserted > 0) {
-        coinsInserted--; // Deduct a coin for the spin
+    if (coins > 0) {
+        coins--; // Deduct a coin for the spin
         const symbols = ['🍒', '🍋', '🍊', '🍉', '⭐'];
         const reel1 = symbols[Math.floor(Math.random() * symbols.length)];
         const reel2 = symbols[Math.floor(Math.random() * symbols.length)];
@@ -42,21 +42,14 @@ function spinSlots() {
     }
 }
 
+function trySpin() {
+    if (coins > 0) spinSlots();
+}
+
 // Dummy payout function
 function payout() {
     console.log("Payout function called. No real payout implemented.");
 }
 
 // Event listener for the spin button
-document.getElementById('startButton').addEventListener('click', spinSlots);
-
-// Simulate coin input from the custom machine
-function simulateCoinInput() {
-    setInterval(() => {
-        insertCoin(); // Simulate a coin being inserted every second
-    }, 1000); // Adjust the interval as needed
-}
-
-// Start simulating coin input
-simulateCoinInput();
-
+document.getElementById('startButton').addEventListener('click', trySpin);

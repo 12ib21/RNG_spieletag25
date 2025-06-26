@@ -38,9 +38,19 @@ export default class Slot {
     }
 
     this.config = config;
+
+    this.currentBalance = 0;
+  }
+
+  setBalance(balance) {
+    this.currentBalance = balance;
   }
 
   spin() {
+    if (this.currentBalance < this.config.costPerSpin) {
+      console.log("Nicht genug kohle!");
+      return;
+    }
     this.currentSymbols = this.nextSymbols;
     this.nextSymbols = [
       [Symbol.random(), Symbol.random(), Symbol.random()],

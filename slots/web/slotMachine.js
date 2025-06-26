@@ -1,7 +1,7 @@
 let coins = 100;
 
 // WebSocket connection to coin server
-    const socket = new WebSocket('ws://localhost:8080');
+    const socket = new WebSocket('ws://localhost:8085');
 
     socket.onmessage = function(event) {
         if (event.data === 'coinInserted') {

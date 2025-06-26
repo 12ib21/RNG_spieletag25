@@ -1,0 +1,29 @@
+{
+  "name": "slot-machine-for-rng-spieletag-25",
+  "description": "Modern casino slot machine game using only plain JavaScript with hardware coin input",
+  "version": "0.0.1",
+  "license": "MIT",
+  "author": "Iren Biggel",
+  "repository": "12ib21/RNG_spieletag25",
+  "scripts": {
+    "build": "webpack --mode production",
+    "start": "webpack serve --mode development",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/preset-env": "^7.15.0",
+    "babel-loader": "^9.1.3",
+    "clean-webpack-plugin": "^4.0.0",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.3.2",
+    "husky": "^9.1.7",
+    "mini-css-extract-plugin": "^2.4.3",
+    "prettier": "^3.4.2",
+    "pretty-quick": "^4.0.0",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.49.0",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.0"
+  }
+}

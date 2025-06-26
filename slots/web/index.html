@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        #slotMachine {
+            margin: 20px auto;
+            width: 300px;
+            height: 200px;
+            border: 2px solid #333;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .reel {
+            width: 80px;
+            height: 150px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+        }
+        #startButton {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Slot Machine</h1>
+<div id="slotMachine">
+    <div class="reel" id="reel1">🍒</div>
+    <div class="reel" id="reel2">🍋</div>
+    <div class="reel" id="reel3">🍊</div>
+</div>
+<button id="startButton">Spin</button>
+
+<script src="slotMachine.js"></script>
+</body>
+</html>
+

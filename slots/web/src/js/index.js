@@ -1,5 +1,4 @@
 import Slot from "./Slot.js";
-import {flattenToSet} from "@babel/core/lib/config/helpers/deep-array";
 
 const webSocketPort = 8085
 const MAX_COIN_AUFLADUNG = 10

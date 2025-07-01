@@ -1,5 +1,7 @@
 import Slot from "./Slot.js";
 
+// TODO: RTP soll auf 90-95% rauslaufen
+
 const windowTitle = document.title;
 const webSocketPort = 8085
 const MAX_COIN_AUFLADUNG = 10

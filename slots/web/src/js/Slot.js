@@ -2,57 +2,83 @@ import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 
 const winFrequency = 40; // %
-const default_symbol = "default";
-const winningPatterns = [
-    [
-        ["+", "+", "+", "+", "+"],
-        10
-    ],
-    [
-        ["+", "+", "+", "+", "+"],
-        ["+", "+", "+", "+", "+"],
-        ["+", "+", "+", "+", "+"],
-        100
-    ],
-    [
-        ["+", "-", "-", "-", "-"],
-        ["-", "+", "+", "+", "-"],
-        ["-", "-", "-", "-", "+"],
-        5
-    ],
-    [
-        ["-", "-", "-", "-", "+"],
-        ["-", "+", "+", "+", "-"],
-        ["+", "-", "-", "-", "-"],
-        5
-    ],
-    [
-        ["+", "-", "-", "-", "+"],
-        ["-", "+", "+", "+", "-"],
-        ["+", "-", "-", "-", "+"],
-        10
-    ],
-    [
-        ["+", "-", "-"],
-        ["-", "+", "-"],
-        ["-", "-", "+"],
-        2
-    ],
-    [
-        ["-", "-", "+"],
-        ["-", "+", "-"],
-        ["+", "-", "-"],
-        1
-    ],
-    [
-        ["+"],
-        ["+"],
-        ["+"],
-        1
-    ],
+// Alle wins nur alle winFrequency mal
+const smallWinChance = 50 // %
+const mediumWinChance = 35 // %
+const bigWinChance = 14.9 // %
+const jackpotChance = 0.1 // %
 
-    // Add more patterns as needed
-];
+const default_symbol = "default";
+const winningPatterns = {
+    basic: [
+        [
+            ["+", "+", "+"],
+            5
+        ],
+        [
+            ["+"],
+            ["+"],
+            ["+"],
+            7
+        ],
+    ],
+    medium: [
+        [
+            ["+", "-", "-"],
+            ["-", "+", "-"],
+            ["-", "-", "+"],
+            10
+        ],
+        [
+            ["-", "-", "+"],
+            ["-", "+", "-"],
+            ["+", "-", "-"],
+            10
+        ],
+        [
+            ["-", "+", "-"],
+            ["+", "-", "+"],
+            10
+        ],
+        [
+            ["+", "-", "+"],
+            ["-", "+", "-"],
+            10
+        ],
+    ],
+    big: [
+        [
+            ["+", "+", "+", "+", "+"],
+            100
+        ],
+        [
+            ["+", "-", "-", "-", "-"],
+            ["-", "+", "+", "+", "-"],
+            ["-", "-", "-", "-", "+"],
+            150
+        ],
+        [
+            ["+", "-", "-", "-", "+"],
+            ["-", "+", "+", "+", "-"],
+            ["+", "-", "-", "-", "+"],
+            200
+        ],
+        [
+            ["-", "-", "-", "-", "+"],
+            ["-", "+", "+", "+", "-"],
+            ["+", "-", "-", "-", "-"],
+            150
+        ],
+    ],
+    jackpot: [
+        [
+            ["+", "+", "+", "+", "+"],
+            ["+", "+", "+", "+", "+"],
+            ["+", "+", "+", "+", "+"],
+            1500
+        ],
+    ]
+}
 
 export default class Slot {
     constructor(domElement, config = {}) {
@@ -171,7 +197,16 @@ export default class Slot {
         // not always win
         const winFrequencyNormalized = winFrequency / 100;
         if (Math.random() < winFrequencyNormalized) { // jetzt gewinnt der spieler
-            const patterns = winningPatterns;
+            const rand = Math.floor(Math.random() * 1000) / 10;
+            let patterns;
+            if (rand < jackpotChance)
+                patterns = winningPatterns.jackpot;
+            else if (rand < bigWinChance)
+                patterns = winningPatterns.big;
+            else if (rand < mediumWinChance)
+                patterns = winningPatterns.medium;
+            else patterns = winningPatterns.basic;
+
             const selectedPattern = patterns[Math.floor(Math.random() * patterns.length)];
             const winAmount = selectedPattern.pop();
             console.log(winAmount);

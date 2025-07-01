@@ -68,10 +68,17 @@ input[type="checkbox"] {
   height: 40px;
 }
 
-#jackpot {
+#stats,
+#stats_label{
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
   color: #d5ad6d;
   font-size: 40px;
   text-align: center;
+  >* {
+    min-width: 180px;
+  }
 }
 
 #slot.inverted .reel {

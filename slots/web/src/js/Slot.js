@@ -1,24 +1,26 @@
 import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 
+const default_symbol = "default";
+
 export default class Slot {
     constructor(domElement, config = {}) {
         Symbol.preload();
 
         this.currentSymbols = [
-            ["death_star", "death_star", "death_star"],
-            ["death_star", "death_star", "death_star"],
-            ["death_star", "death_star", "death_star"],
-            ["death_star", "death_star", "death_star"],
-            ["death_star", "death_star", "death_star"],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
         ];
 
         this.nextSymbols = [
-            ["death_star", "death_star", "death_star"],
-            ["death_star", "death_star", "death_star"],
-            ["death_star", "death_star", "death_star"],
-            ["death_star", "death_star", "death_star"],
-            ["death_star", "death_star", "death_star"],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
         ];
 
         this.container = domElement;

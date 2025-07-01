@@ -155,10 +155,12 @@ export default class Slot {
         const screen = this.#createEmptyGrid(3, 5);
         const winningPattern = this.#selectWinningPattern();
         // Determine the size of the winning pattern
-        const patternRows = winningPattern.length;
+        const patternRows = winningPattern.length - 1;
         const patternCols = winningPattern[0].length;
-        const startRow = Math.floor(Math.random() * (3 - patternRows + 1)); // Ensure it fits vertically
-        const startCol = Math.floor(Math.random() * (5 - patternCols + 1)); // Ensure it fits horizontally
+        let startRow = Math.floor(Math.random() * (3 - patternRows)); // Ensure it fits vertically
+        let startCol = Math.floor(Math.random() * (5 - patternCols)); // Ensure it fits horizontally
+        if (patternRows === 3) startRow = 0;
+        if (patternCols === 5) startCol = 0;
         console.log(`row: ${startRow}, col: ${startCol}`);
         this.#placePattern(screen, winningPattern, startRow, startCol);
 

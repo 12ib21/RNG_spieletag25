@@ -48,6 +48,10 @@ wss.on('connection', (ws) => {
     port.on('error', (err) => {
         console.error('Error SP: ', err.message);
     });
+
+    ws.on('close', () => {
+        ws.close();
+    })
 });
 
 console.log(`WebSocket server is running on ws://localhost:${webSocketPort}`);

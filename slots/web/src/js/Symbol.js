@@ -1,5 +1,12 @@
 const cache = {};
 
+const chanceLegendary = 10;
+const chanceBonus = 20;
+const chanceBasic = 70;
+
+const numLegendary = 2;
+const numBonus = 2;
+
 export default class Symbol {
     constructor(name = Symbol.random()) {
         this.name = name;
@@ -21,23 +28,40 @@ export default class Symbol {
     static get symbols() {
         return [
             "boneberg",
-            "breuer",
+            "krauss_bike",
             "eska",
+            "worbs",
+            "breuer",
             "joos",
             "knape",
             "kob",
             "krauss",
-            "krauss_bike",
             "moehrle",
             "temmel",
             "volker",
-            "worbs",
             "default",
         ];
     }
 
     static random() {
-        // -1, weil das "default" Symbol nicht genommen werden soll
-        return this.symbols[Math.floor(Math.random() * (this.symbols.length - 1))];
+        let randomVal = Math.floor(Math.random() * (chanceBasic + chanceBonus + chanceLegendary));
+        if (randomVal < chanceLegendary)
+            return this.#random_Legendary();
+        else if (randomVal < chanceBonus)
+            return this.#random_Bonus();
+        else
+            return this.#random_Basic();
+    }
+
+    static #random_Basic() {
+        return this.symbols[Math.floor(Math.random() * (this.symbols.length - numLegendary - numBonus - 1)) + numLegendary + numBonus];
+    }
+
+    static #random_Bonus() {
+        return this.symbols[Math.floor(Math.random() * numBonus) + numLegendary];
+    }
+
+    static #random_Legendary() {
+        return this.symbols[Math.floor(Math.random() * numLegendary)];
     }
 }

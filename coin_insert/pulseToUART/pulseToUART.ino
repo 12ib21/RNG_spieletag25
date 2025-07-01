@@ -1,23 +1,22 @@
 #include <Arduino.h>
 
-const int coinPin = 2; // Pin connected to the coin mechanism
-volatile int coinCount = 0;
-
 void setup() {
-    Serial.begin(115200); // Start serial communication
-    pinMode(coinPin, INPUT_PULLUP); // Set the coin pin as input with pull-up resistor
-    attachInterrupt(digitalPinToInterrupt(coinPin), coinInserted, FALLING); // Interrupt on falling edge
+  Serial.begin(115200);
+  pinMode(D2, INPUT_PULLUP);
+  pinMode(D5, INPUT_PULLUP);
+  delay(500);
+  Serial.println("Start");
 }
 
 void loop() {
-    // Check if a coin was inserted
-    if (coinCount > 0) {
-        Serial.println("Coin inserted");
-        coinCount--; // Decrement the coin count
-    }
+  if (!digitalRead(D2)) {
+    Serial.print("cns:1");
+  }
+  delay(500);
+  if (!digitalRead(D5)) {
+    Serial.print("ftpon");
+  } else {
+    Serial.print("ftpoff");
+  }
+  delay(500);
 }
-
-void coinInserted() {
-    coinCount++; // Increment the coin count on pulse
-}
-

@@ -1,13 +1,12 @@
 import Slot from "./Slot.js";
 
-const windowTitle  = document.title;
+const windowTitle = document.title;
 const webSocketPort = 8085
 const MAX_COIN_AUFLADUNG = 10
 
 const config = {
     inverted: false, // true: reels spin from top to bottom; false: reels spin from bottom to top
     onSpinStart: (symbols) => {
-        console.log("onSpinStart", symbols);
         updateUI();
     },
     onSpinEnd: (symbols) => {
@@ -37,11 +36,10 @@ socket.onmessage = function (event) {
     }
     if (event.data.toString().startsWith('ftpon')) {
         slot.freeToPlay = true;
-        document.title = `${windowTitle} ~ FTP`;
     }
     if (event.data.toString().startsWith('ftpoff')) {
         slot.freeToPlay = false;
-        document.title = `${windowTitle}`;
+
     }
     updateUI();
 };
@@ -58,8 +56,13 @@ function updateUI() {
     document.getElementById('bal').innerText = slot.currentBalance.toFixed(2);
     document.getElementById('jp').innerHTML = slot.currentBalance.toFixed(2);
     if (slot.freeToPlay === true) {
+        slot.spinButton.disabled = false;
         document.getElementById('cost').innerHTML = 'FTP ~ &infin;';
+        document.title = `${windowTitle} ~ FTP`;
     } else {
+        slot.spinButton.disabled = slot.currentBalance < slot.config.costPerSpin;
         document.getElementById('cost').innerText = slot.config.costPerSpin.toFixed(2);
+        document.title = `${windowTitle} ~ ${slot.currentBalance.toFixed(2)}€`;
     }
+    if (slot.isSpinning === true) slot.spinButton.disabled = true;
 }

@@ -5,37 +5,50 @@ const winFrequency = 40; // %
 const default_symbol = "default";
 const winningPatterns = [
     [
-        ["+", "+", "+", "+", "+"]
+        ["+", "+", "+", "+", "+"],
+        10
+    ],
+    [
+        ["+", "+", "+", "+", "+"],
+        ["+", "+", "+", "+", "+"],
+        ["+", "+", "+", "+", "+"],
+        100
     ],
     [
         ["+", "-", "-", "-", "-"],
         ["-", "+", "+", "+", "-"],
-        ["-", "-", "-", "-", "+"]
+        ["-", "-", "-", "-", "+"],
+        5
     ],
     [
         ["-", "-", "-", "-", "+"],
         ["-", "+", "+", "+", "-"],
-        ["+", "-", "-", "-", "-"]
+        ["+", "-", "-", "-", "-"],
+        5
     ],
     [
         ["+", "-", "-", "-", "+"],
         ["-", "+", "+", "+", "-"],
-        ["+", "-", "-", "-", "+"]
+        ["+", "-", "-", "-", "+"],
+        10
     ],
     [
         ["+", "-", "-"],
         ["-", "+", "-"],
-        ["-", "-", "+"]
+        ["-", "-", "+"],
+        2
     ],
     [
         ["-", "-", "+"],
         ["-", "+", "-"],
-        ["+", "-", "-"]
+        ["+", "-", "-"],
+        1
     ],
     [
         ["+"],
         ["+"],
-        ["+"]
+        ["+"],
+        1
     ],
 
     // Add more patterns as needed
@@ -81,6 +94,7 @@ export default class Slot {
 
         this.currentBalance = 0;
         this.freeToPlay = false;
+        this.isSpinning = false;
     }
 
     setBalance(balance) {
@@ -101,7 +115,6 @@ export default class Slot {
 
         this.currentSymbols = this.nextSymbols;
         this.nextSymbols = this.#convertScreenToSlots(this.#generateScreen());
-        console.log(this.nextSymbols)
         this.onSpinStart(this.nextSymbols);
 
         return Promise.all(
@@ -159,7 +172,10 @@ export default class Slot {
         const winFrequencyNormalized = winFrequency / 100;
         if (Math.random() < winFrequencyNormalized) { // jetzt gewinnt der spieler
             const patterns = winningPatterns;
-            return patterns[Math.floor(Math.random() * patterns.length)];
+            const selectedPattern = patterns[Math.floor(Math.random() * patterns.length)];
+            const winAmount = selectedPattern.pop();
+            console.log(winAmount);
+            return selectedPattern;
         }
         return [[]];
     }
@@ -183,19 +199,19 @@ export default class Slot {
             slots.push(newRow);
             newRow = [];
         }
-
         if (newRow.length > 0) slots.push(newRow);
         return slots;
     }
 
     onSpinStart(symbols) {
         this.spinButton.disabled = true;
-
+        this.isSpinning = true;
         this.config.onSpinStart?.(symbols);
     }
 
     onSpinEnd(symbols) {
         this.spinButton.disabled = false;
+        this.isSpinning = false;
 
         this.config.onSpinEnd?.(symbols);
 

@@ -209,10 +209,9 @@ export default class Slot {
                 patterns = winningPatterns.medium;
             else patterns = winningPatterns.basic;
 
-            const selectedPattern = patterns[Math.floor(Math.random() * patterns.length)];
-            const winAmount = selectedPattern.pop();
-            console.log(winAmount);
-            return selectedPattern;
+            let pat = JSON.parse(JSON.stringify(patterns[Math.floor(Math.random() * patterns.length)]));
+            pat.length = pat.length - 1;
+            return pat;
         }
         return [[]];
     }
@@ -240,9 +239,54 @@ export default class Slot {
         return slots;
     }
 
+    #convertSlotsToScreen(slots) {
+        const screen = [];
+        let newRow = [];
+
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 5; j++) {
+                newRow.push(slots[j][i]);
+            }
+            screen.push(newRow);
+            newRow = [];
+        }
+
+        if (newRow.length > 0) screen.push(newRow);
+        return screen;
+    }
+
+    #calcWinAmount(symbols) {
+        // symbols ist im slot Format!
+        let amount = 0;
+        winningPatterns.basic.forEach(pattern => {
+            console.log(pattern);
+            const winFactor = pattern[pattern.length - 1];
+            pattern.length = pattern.length - 1;
+            const height = pattern.length;
+            const width = pattern[0].length;
+            const mvLR = Math.max(0, 5 - width);
+            const mvHR = Math.max(0, 3 - height);
+            const slotPattern = this.#convertSlotsToScreen(symbols);
+            console.log(slotPattern);
+            for (let i = 0; i < mvLR; i++) {
+                for (let j = 0; j < mvHR; j++) { // arr [j][i], slot[i][j]
+                    pattern.forEach((row, rowIndex) => {
+                        // TODO: alle möglichen positionen für die patterns werden hier abgegrast...
+                        // TODO: hier muss dann getestet werden ob stimmt und dann + gewinn gemacht werden
+                    })
+                }
+            }
+            console.log(mvLR);
+            console.log(mvHR);
+
+            console.log(winFactor);
+        });
+    }
+
     onSpinStart(symbols) {
         this.spinButton.disabled = true;
         this.isSpinning = true;
+        this.#calcWinAmount(symbols);
         this.config.onSpinStart?.(symbols);
     }
 

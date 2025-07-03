@@ -3,7 +3,7 @@ import Symbol from "./Symbol.js";
 
 const winFrequency = 40; // %
 // Alle wins nur alle winFrequency mal
-const smallWinChance = 50 // %
+// die restlichen prozente gehen an small wins
 const mediumWinChance = 35 // %
 const bigWinChance = 14.9 // %
 const jackpotChance = 0.1 // %
@@ -157,8 +157,10 @@ export default class Slot {
         // Determine the size of the winning pattern
         const patternRows = winningPattern.length - 1;
         const patternCols = winningPattern[0].length;
-        let startRow = Math.floor(Math.random() * (3 - patternRows)); // Ensure it fits vertically
-        let startCol = Math.floor(Math.random() * (5 - patternCols)); // Ensure it fits horizontally
+        const mvV = 3 - patternRows;
+        const mvH = 5 - patternCols;
+        let startRow = this.#getRandomInt(mvV) // Ensure it fits vertically
+        let startCol = this.#getRandomInt(mvH) // Ensure it fits horizontally
         if (patternRows === 3) startRow = 0;
         if (patternCols === 5) startCol = 0;
         console.log(`row: ${startRow}, col: ${startCol}`);
@@ -180,11 +182,16 @@ export default class Slot {
         return screen;
     }
 
+    #getRandomInt(max) {
+        return Math.floor(Math.random() * (max + 1));
+    }
+
     #placePattern(screen, pattern, startRow, startCol) {
         const patternRows = pattern.length;
         const patternCols = pattern[0].length;
 
         for (let row = 0; row < patternRows; row++) {
+            if (typeof pattern[row] === "number") break; // am Ende noch winAmount
             for (let col = 0; col < patternCols; col++) {
                 if (pattern[row][col] === "+") {
                     screen[startRow + row][startCol + col] = "X";
@@ -209,9 +216,7 @@ export default class Slot {
                 patterns = winningPatterns.medium;
             else patterns = winningPatterns.basic;
 
-            let pat = JSON.parse(JSON.stringify(patterns[Math.floor(Math.random() * patterns.length)]));
-            pat.length = pat.length - 1;
-            return pat;
+            return patterns[Math.floor(Math.random() * patterns.length)].slice(0, -1);
         }
         return [[]];
     }
@@ -258,29 +263,77 @@ export default class Slot {
     #calcWinAmount(symbols) {
         // symbols ist im slot Format!
         let amount = 0;
+        let matches = [];
         winningPatterns.basic.forEach(pattern => {
-            console.log(pattern);
-            const winFactor = pattern[pattern.length - 1];
-            pattern.length = pattern.length - 1;
-            const height = pattern.length;
-            const width = pattern[0].length;
-            const mvLR = Math.max(0, 5 - width);
-            const mvHR = Math.max(0, 3 - height);
-            const slotPattern = this.#convertSlotsToScreen(symbols);
-            console.log(slotPattern);
-            for (let i = 0; i < mvLR; i++) {
-                for (let j = 0; j < mvHR; j++) { // arr [j][i], slot[i][j]
-                    pattern.forEach((row, rowIndex) => {
-                        // TODO: alle möglichen positionen für die patterns werden hier abgegrast...
-                        // TODO: hier muss dann getestet werden ob stimmt und dann + gewinn gemacht werden
-                    })
-                }
+            const res = this.#getPatternMatches(pattern, symbols);
+            if (res.length !== 0) {
+                res.forEach(match => {
+                    matches.push(match);
+                })
             }
-            console.log(mvLR);
-            console.log(mvHR);
-
-            console.log(winFactor);
         });
+        winningPatterns.medium.forEach(pattern => {
+            const res = this.#getPatternMatches(pattern, symbols);
+            if (res.length !== 0) {
+                res.forEach(match => {
+                    matches.push(match);
+                })
+            }
+        });
+        winningPatterns.big.forEach(pattern => {
+            const res = this.#getPatternMatches(pattern, symbols);
+            if (res.length !== 0) {
+                res.forEach(match => {
+                    matches.push(match);
+                })
+            }
+        });
+        winningPatterns.jackpot.forEach(pattern => {
+            const res = this.#getPatternMatches(pattern, symbols);
+            if (res.length !== 0) {
+                res.forEach(match => {
+                    matches.push(match);
+                })
+            }
+        });
+        console.log(matches);
+    }
+
+    #getPatternMatches(_pattern, slotSymbols) {
+        let finalMatches = [];
+        const winAmount = _pattern[_pattern.length - 1];
+        let pattern = _pattern.slice(0, -1);
+        const height = pattern.length;
+        const width = pattern[0].length;
+        const mvLR = Math.max(0, 5 - width);
+        const mvHR = Math.max(0, 3 - height);
+        const slotPattern = this.#convertSlotsToScreen(slotSymbols);
+        for (let i = 0; i <= mvLR; i++) {
+            for (let j = 0; j <= mvHR; j++) { // arr [j][i], slot[i][j]
+                let winningSymbol = null;
+                let matches = true;
+                let cancel = false;
+                pattern.forEach((row, rowIndex) => {
+                    row.forEach((col, colIndex) => {
+                        if (col === "+" && !cancel) {
+                            if (winningSymbol === null) winningSymbol = slotPattern[j + rowIndex][i + colIndex];
+                            matches = slotPattern[j + rowIndex][i + colIndex] === winningSymbol;
+                            cancel = !matches;
+                        }
+                    });
+                });
+                let match = {};
+                match.matches = matches;
+                match.symbol = winningSymbol;
+                match.posX = i;
+                match.posY = j;
+                match.pattern = pattern;
+                match.payoutAmount = winAmount;
+                if (match.matches)
+                    finalMatches.push(match);
+            }
+        }
+        return finalMatches;
     }
 
     onSpinStart(symbols) {

@@ -334,6 +334,12 @@ export default class Slot {
         // TODO: anzeigen mit this.nextMatches
     }
 
+    #addBalance() {
+        // TODO: langsam hochzählen - schaut schicker aus
+        this.currentBalance += this.winAmount;
+        this.winAmount = 0;
+    }
+
     #getPatternMatches(_pattern, slotSymbols) {
         let finalMatches = [];
         const winAmount = _pattern[_pattern.length - 1];
@@ -382,6 +388,7 @@ export default class Slot {
         this.spinButton.disabled = false;
         this.isSpinning = false;
         this.#visualizeWins();
+        this.#addBalance();
         this.config.onSpinEnd?.(symbols);
 
         if (this.autoPlayCheckbox.checked) {

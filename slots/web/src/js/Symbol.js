@@ -1,5 +1,9 @@
 const cache = {};
 
+const rewardBasic = 1;
+const rewardBonus = 2;
+const rewardLegendary = 5;
+
 const chanceLegendary = 10;
 const chanceBonus = 20;
 const chanceBasic = 70;
@@ -63,5 +67,13 @@ export default class Symbol {
 
     static #random_Legendary() {
         return this.symbols[Math.floor(Math.random() * numLegendary)];
+    }
+
+    static getMultiplier(symbol) {
+        const symbolIndex = this.symbols.findIndex(p => p === symbol);
+        if (symbolIndex === -1) return 0;
+        if (symbolIndex < numLegendary) return rewardLegendary;
+        if (symbolIndex < numLegendary + numBonus) return rewardBonus;
+        return rewardBasic
     }
 }

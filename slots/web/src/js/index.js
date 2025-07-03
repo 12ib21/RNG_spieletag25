@@ -22,6 +22,11 @@ setTimeout(updateUI, 1500);
 
 const slot = new Slot(document.getElementById("slot"), config);
 
+// TODO: jackpot automatisch in updateUI aktualisieren,
+//  dafür muss aber calcJackpot noch umgeschrieben werden,
+//  dass nicht auf die this variablen vom aktiven spiel zugegriffen wird
+const jackpot = slot.calcJackpotAmount();
+
 // WebSocket connection to coin server
 const socket = new WebSocket(`ws://localhost:${webSocketPort}`);
 
@@ -55,15 +60,15 @@ socket.onerror = function (error) {
 };
 
 function updateUI() {
-    document.getElementById('bal').innerText = slot.currentBalance.toFixed(2);
-    document.getElementById('jp').innerHTML = slot.currentBalance.toFixed(2);
+    document.getElementById('cost').innerText = slot.config.costPerSpin.toFixed(2);
+    document.getElementById('jp').innerHTML = jackpot.toFixed(2);
     if (slot.freeToPlay === true) {
         slot.spinButton.disabled = false;
-        document.getElementById('cost').innerHTML = 'FTP ~ &infin;';
+        document.getElementById('bal').innerHTML = 'FTP ~ &infin;';
         document.title = `${windowTitle} ~ FTP`;
     } else {
         slot.spinButton.disabled = slot.currentBalance < slot.config.costPerSpin;
-        document.getElementById('cost').innerText = slot.config.costPerSpin.toFixed(2);
+        document.getElementById('bal').innerText = slot.currentBalance.toFixed(2);
         document.title = `${windowTitle} ~ ${slot.currentBalance.toFixed(2)}€`;
     }
     if (slot.isSpinning === true) slot.spinButton.disabled = true;

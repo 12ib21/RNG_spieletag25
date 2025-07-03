@@ -13,13 +13,13 @@ const winningPatterns = {
     basic: [
         [
             ["+", "+", "+"],
-            5
+            2
         ],
         [
             ["+"],
             ["+"],
             ["+"],
-            7
+            3
         ],
     ],
     medium: [
@@ -27,47 +27,47 @@ const winningPatterns = {
             ["+", "-", "-"],
             ["-", "+", "-"],
             ["-", "-", "+"],
-            10
+            7
         ],
         [
             ["-", "-", "+"],
             ["-", "+", "-"],
             ["+", "-", "-"],
-            10
+            7
         ],
         [
             ["-", "+", "-"],
             ["+", "-", "+"],
-            10
+            5
         ],
         [
             ["+", "-", "+"],
             ["-", "+", "-"],
-            10
+            5
         ],
     ],
     big: [
         [
             ["+", "+", "+", "+", "+"],
+            20
+        ],
+        [
+            ["+", "-", "-", "-", "-"],
+            ["-", "+", "+", "+", "-"],
+            ["-", "-", "-", "-", "+"],
+            50
+        ],
+        [
+            ["-", "-", "-", "-", "+"],
+            ["-", "+", "+", "+", "-"],
+            ["+", "-", "-", "-", "-"],
+            50
+        ],
+        [
+            ["+", "-", "-", "-", "+"],
+            ["-", "+", "+", "+", "-"],
+            ["+", "-", "-", "-", "+"],
             100
-        ],
-        [
-            ["+", "-", "-", "-", "-"],
-            ["-", "+", "+", "+", "-"],
-            ["-", "-", "-", "-", "+"],
-            150
-        ],
-        [
-            ["+", "-", "-", "-", "+"],
-            ["-", "+", "+", "+", "-"],
-            ["+", "-", "-", "-", "+"],
-            200
-        ],
-        [
-            ["-", "-", "-", "-", "+"],
-            ["-", "+", "+", "+", "-"],
-            ["+", "-", "-", "-", "-"],
-            150
         ],
     ],
     jackpot: [
@@ -121,6 +121,9 @@ export default class Slot {
         this.currentBalance = 0;
         this.freeToPlay = false;
         this.isSpinning = false;
+        this.winAmount = 0;
+        this.nextMatches = null;
+        this.bet = this.config.costPerSpin;
     }
 
     setBalance(balance) {
@@ -155,7 +158,7 @@ export default class Slot {
         const screen = this.#createEmptyGrid(3, 5);
         const winningPattern = this.#selectWinningPattern();
         // Determine the size of the winning pattern
-        const patternRows = winningPattern.length - 1;
+        const patternRows = winningPattern.length;
         const patternCols = winningPattern[0].length;
         const mvV = 3 - patternRows;
         const mvH = 5 - patternCols;
@@ -262,14 +265,14 @@ export default class Slot {
 
     #calcWinAmount(symbols) {
         // symbols ist im slot Format!
-        let amount = 0;
+        this.winAmount = 0;
         let matches = [];
         winningPatterns.basic.forEach(pattern => {
             const res = this.#getPatternMatches(pattern, symbols);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
-                })
+                });
             }
         });
         winningPatterns.medium.forEach(pattern => {
@@ -277,7 +280,7 @@ export default class Slot {
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
-                })
+                });
             }
         });
         winningPatterns.big.forEach(pattern => {
@@ -285,7 +288,7 @@ export default class Slot {
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
-                })
+                });
             }
         });
         winningPatterns.jackpot.forEach(pattern => {
@@ -293,10 +296,42 @@ export default class Slot {
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
-                })
+                });
             }
         });
+        this.nextMatches = matches;
+        matches.forEach(match => {
+            this.winAmount += this.#calcWinAmountForPattern(match.payoutAmount, match.symbol) * this.bet;
+        });
         console.log(matches);
+        console.log(`win amount: ${this.winAmount}`);
+    }
+
+    #calcWinAmountForPattern(baseWinAmount, symbol) {
+        const multiplier = Symbol.getMultiplier(symbol);
+        return baseWinAmount * multiplier;
+    }
+
+    calcJackpotAmount() {
+        const winAmount = this.winAmount;
+        const nextMatches = this.nextMatches;
+        const symbols = [
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+        ]
+        this.#calcWinAmount(symbols);
+        const jackpot = this.winAmount;
+        this.winAmount = winAmount;
+        this.nextMatches = nextMatches;
+        return jackpot;
+    }
+
+    #visualizeWins() {
+        if (this.nextMatches === null || this.nextMatches === undefined) return;
+        // TODO: anzeigen mit this.nextMatches
     }
 
     #getPatternMatches(_pattern, slotSymbols) {
@@ -346,11 +381,11 @@ export default class Slot {
     onSpinEnd(symbols) {
         this.spinButton.disabled = false;
         this.isSpinning = false;
-
+        this.#visualizeWins();
         this.config.onSpinEnd?.(symbols);
 
         if (this.autoPlayCheckbox.checked) {
-            return window.setTimeout(() => this.spin(), 200);
+            return window.setTimeout(() => this.spin(), 500);
         }
     }
 }

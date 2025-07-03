@@ -1,7 +1,7 @@
 import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 
-const winFrequency = 40; // %
+const winFrequency = 35; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
 const mediumWinChance = 35 // %
@@ -63,12 +63,6 @@ const winningPatterns = {
             ["+", "-", "-", "-", "-"],
             50
         ],
-        [
-            ["+", "-", "-", "-", "+"],
-            ["-", "+", "+", "+", "-"],
-            ["+", "-", "-", "-", "+"],
-            100
-        ],
     ],
     jackpot: [
         [
@@ -78,7 +72,69 @@ const winningPatterns = {
             1500
         ],
     ]
-}
+};
+const winningPatternsSvg = {
+    basic: [
+        [
+            {x: 0, y: 0},
+            {x: 1, y: 0},
+            {x: 2, y: 0},
+        ],
+        [
+            {x: 0, y: 0},
+            {x: 0, y: 1},
+            {x: 0, y: 2},
+        ],
+    ],
+    medium: [
+        [
+            {x: 0, y: 0},
+            {x: 1, y: 1},
+            {x: 2, y: 2},
+        ],
+        [
+            {x: 0, y: 2},
+            {x: 1, y: 1},
+            {x: 2, y: 0},
+        ],
+        [
+            {x: 0, y: 1},
+            {x: 1, y: 0},
+            {x: 2, y: 1},
+        ],
+        [
+            {x: 0, y: 0},
+            {x: 1, y: 1},
+            {x: 2, y: 0},
+        ],
+    ],
+    big: [
+        [
+            {x: 0, y: 0},
+            {x: 1, y: 0},
+            {x: 2, y: 0},
+            {x: 3, y: 0},
+            {x: 4, y: 0},
+        ],
+        [
+            {x: 0, y: 0},
+            {x: 1, y: 1},
+            {x: 2, y: 1},
+            {x: 3, y: 1},
+            {x: 4, y: 2},
+        ],
+        [
+            {x: 0, y: 2},
+            {x: 1, y: 1},
+            {x: 2, y: 1},
+            {x: 3, y: 1},
+            {x: 4, y: 0},
+        ],
+    ],
+    jackpot: [
+        [],
+    ],
+};
 
 export default class Slot {
     constructor(domElement, config = {}) {
@@ -267,32 +323,32 @@ export default class Slot {
         // symbols ist im slot Format!
         this.winAmount = 0;
         let matches = [];
-        winningPatterns.basic.forEach(pattern => {
-            const res = this.#getPatternMatches(pattern, symbols);
+        winningPatterns.basic.forEach((pattern, index) => {
+            const res = this.#getPatternMatches(pattern, symbols, "basic", index);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
                 });
             }
         });
-        winningPatterns.medium.forEach(pattern => {
-            const res = this.#getPatternMatches(pattern, symbols);
+        winningPatterns.medium.forEach((pattern, index) => {
+            const res = this.#getPatternMatches(pattern, symbols, "medium", index);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
                 });
             }
         });
-        winningPatterns.big.forEach(pattern => {
-            const res = this.#getPatternMatches(pattern, symbols);
+        winningPatterns.big.forEach((pattern, index) => {
+            const res = this.#getPatternMatches(pattern, symbols, "big", index);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
                 });
             }
         });
-        winningPatterns.jackpot.forEach(pattern => {
-            const res = this.#getPatternMatches(pattern, symbols);
+        winningPatterns.jackpot.forEach((pattern, index) => {
+            const res = this.#getPatternMatches(pattern, symbols, "jackpot", index);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
@@ -331,7 +387,43 @@ export default class Slot {
 
     #visualizeWins() {
         if (this.nextMatches === null || this.nextMatches === undefined) return;
-        // TODO: anzeigen mit this.nextMatches
+        this.config.winVisualizeSvg.innerHTML = "";
+        let lastDelay = 0;
+        this.nextMatches.forEach((match, index) => {
+            // TODO: anzeigen mit this.nextMatches
+            console.log(match);
+            const points = winningPatternsSvg[match.patternType][match.patternIndex];
+            this.#createPolyline(points, match.posX, match.posY, "blue", 100 * index);
+            lastDelay = 100 * index;
+        });
+        return lastDelay + 1000; // 1000 für die svg Animation
+    }
+
+    #createPolyline(points, offsetX, offsetY, color, delay) {
+        const cellWidth = this.config.winVisualizeSvg.getAttribute("width") / 5;
+        const cellHeight = this.config.winVisualizeSvg.getAttribute("height") / 3;
+        const polylinePoints = points.map(point => {
+            return `${(point.x + offsetX) * cellWidth + cellWidth / 2},${(point.y + offsetY) * cellHeight + cellHeight / 2}`;
+        }).join(" ");
+        const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        polyline.setAttribute("points", polylinePoints);
+        polyline.setAttribute("fill", "none");
+        polyline.setAttribute("stroke", color);
+        polyline.setAttribute("stroke-width", "10");
+        polyline.setAttribute("stroke-linecap", "round");
+
+        this.config.winVisualizeSvg.appendChild(polyline);
+
+        requestAnimationFrame(() => {
+            const length = polyline.getTotalLength();
+            polyline.setAttribute("stroke-dasharray", length.toString());
+            polyline.setAttribute("stroke-dashoffset", length.toString());
+
+            setTimeout(() => {
+                polyline.style.transition = "stroke-dashoffset 1s ease-in-out";
+                polyline.setAttribute("stroke-dashoffset", "0");
+            }, 100 + delay);
+        });
     }
 
     #addBalance() {
@@ -340,7 +432,7 @@ export default class Slot {
         this.winAmount = 0;
     }
 
-    #getPatternMatches(_pattern, slotSymbols) {
+    #getPatternMatches(_pattern, slotSymbols, patternType, patternIndex) {
         let finalMatches = [];
         const winAmount = _pattern[_pattern.length - 1];
         let pattern = _pattern.slice(0, -1);
@@ -370,6 +462,8 @@ export default class Slot {
                 match.posY = j;
                 match.pattern = pattern;
                 match.payoutAmount = winAmount;
+                match.patternType = patternType;
+                match.patternIndex = patternIndex;
                 if (match.matches)
                     finalMatches.push(match);
             }
@@ -380,6 +474,7 @@ export default class Slot {
     onSpinStart(symbols) {
         this.spinButton.disabled = true;
         this.isSpinning = true;
+        this.config.winVisualizeSvg.innerHTML = "";
         this.#calcWinAmount(symbols);
         this.config.onSpinStart?.(symbols);
     }
@@ -387,12 +482,12 @@ export default class Slot {
     onSpinEnd(symbols) {
         this.spinButton.disabled = false;
         this.isSpinning = false;
-        this.#visualizeWins();
+        const time = this.#visualizeWins();
         this.#addBalance();
         this.config.onSpinEnd?.(symbols);
 
         if (this.autoPlayCheckbox.checked) {
-            return window.setTimeout(() => this.spin(), 500);
+            return window.setTimeout(() => this.spin(), 500 + time);
         }
     }
 }

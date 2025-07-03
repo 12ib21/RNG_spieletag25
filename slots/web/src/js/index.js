@@ -6,6 +6,8 @@ const windowTitle = document.title;
 const webSocketPort = 8085
 const MAX_COIN_AUFLADUNG = 10
 
+const winVisualizeSvg = createOverlaySVG();
+
 const config = {
     inverted: false, // true: reels spin from top to bottom; false: reels spin from bottom to top
     onSpinStart: (symbols) => {
@@ -16,6 +18,7 @@ const config = {
         updateUI();
     },
     costPerSpin: 0.5,
+    winVisualizeSvg: winVisualizeSvg,
 };
 
 setTimeout(updateUI, 1500);
@@ -72,4 +75,26 @@ function updateUI() {
         document.title = `${windowTitle} ~ ${slot.currentBalance.toFixed(2)}€`;
     }
     if (slot.isSpinning === true) slot.spinButton.disabled = true;
+}
+
+function createOverlaySVG() {
+    const reelsDiv = document.getElementById("reels");
+
+    // Get the dimensions and position of the div
+    const rect = reelsDiv.getBoundingClientRect();
+
+    // Create the SVG element
+    const svgNamespace = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNamespace, "svg");
+    svg.setAttribute("class", "overlay");
+    svg.setAttribute("width", rect.width.toString());
+    svg.setAttribute("height", rect.height.toString());
+    svg.style.position = "absolute";
+    svg.style.top = `${rect.top}px`;
+    svg.style.left = `${rect.left}px`;
+    svg.style.pointerEvents = "none"; // allows clicks to pass through the SVG
+
+    document.body.appendChild(svg); // ist egal wohin appenden, ist ja absolut positioniert
+
+    return svg;
 }

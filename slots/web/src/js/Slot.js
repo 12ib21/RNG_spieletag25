@@ -402,7 +402,7 @@ export default class Slot {
         this.config.winVisualizeSvg.innerHTML = "";
         let lastDelay = 0;
         const colorOffset = this.#getRandomInt(colorPalette.length);
-        this.nextMatches.forEach((match, index) => {
+        this.nextMatches.reverse().forEach((match, index) => {
             console.log(match);
             const points = winningPatternsSvg[match.patternType][match.patternIndex];
             const color = colorPalette[(index + colorOffset) % colorPalette.length];
@@ -410,21 +410,21 @@ export default class Slot {
             lastDelay = 100 * index;
         });
         if (this.nextMatches.length === 0) { // nix gewonnen
-            lastDelay = -2500; // bleiben noch 500 übrig
-        } else {
-            const winAmount = this.winAmount.toFixed(2);
-            setTimeout(() => {
-                // gewinnmenge anzeigen
-                const winDisplay = document.getElementById("winText");
-                winDisplay.innerText = `+${winAmount}€`;
-                winDisplay.style.animation = "pop 2s forwards";
-                setTimeout(() => {
-                    winDisplay.style.animation = "";
-                }, 2000);
-            }, Math.max(0, lastDelay + 850));
+            return 500;
         }
-        // 1000 für die svg Animation, 2000 für die Textanimation
-        return Math.max(0, lastDelay + 1000 + 2000);
+        const winAmount = this.winAmount.toFixed(2);
+        setTimeout(() => {
+            // gewinnmenge anzeigen
+            const winDisplay = document.getElementById("winText");
+            winDisplay.innerText = `+${winAmount}€`;
+            winDisplay.style.animation = "pop 2s forwards";
+            setTimeout(() => {
+                winDisplay.style.animation = "";
+            }, 2000);
+        }, Math.max(0, lastDelay + 650));
+
+        // 750 für die svg Animation, 2000 für die Textanimation
+        return Math.max(0, lastDelay + 750 + 2000);
     }
 
     #createPolyline(points, offsetX, offsetY, color, delay) {
@@ -452,7 +452,7 @@ export default class Slot {
             polyline.setAttribute("stroke-dashoffset", length.toString());
 
             setTimeout(() => {
-                polyline.style.transition = "stroke-dashoffset 1s ease-in-out";
+                polyline.style.transition = "stroke-dashoffset 750ms ease-in-out";
                 polyline.setAttribute("stroke-dashoffset", "0");
             }, 100 + delay);
         });

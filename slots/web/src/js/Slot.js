@@ -415,7 +415,11 @@ export default class Slot {
         this.config.winVisualizeSvg.appendChild(polyline);
 
         requestAnimationFrame(() => {
-            const length = polyline.getTotalLength();
+            let length = 100;
+            try {
+                length = polyline.getTotalLength();
+            } catch (e) {
+            }
             polyline.setAttribute("stroke-dasharray", length.toString());
             polyline.setAttribute("stroke-dashoffset", length.toString());
 

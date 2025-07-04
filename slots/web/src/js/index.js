@@ -7,6 +7,7 @@ import bgmLoop from "../assets/sound/Bgm_loop.mp3";
 const windowTitle = document.title;
 const webSocketPort = 8085
 const MAX_COIN_AUFLADUNG = 10
+const bgmVolume = 1.0; // max 1
 
 const winVisualizeSvg = createOverlaySVG();
 
@@ -43,9 +44,12 @@ loadAudio();
 
 function startBgm(buffer) {
     if (buffer) {
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(bgmVolume, 0);
         sourceNode = audioContext.createBufferSource();
         sourceNode.buffer = buffer;
-        sourceNode.connect(audioContext.destination);
+        sourceNode.connect(gainNode);
+        gainNode.connect(audioContext.destination);
         sourceNode.start(0, 0);
         sourceNode.onended = () => {
             if (buffer === audioBufferStart) {
@@ -80,7 +84,7 @@ const config = {
     winVisualizeSvg: winVisualizeSvg,
 };
 
-setTimeout(updateUI, 1500);
+setTimeout(updateUI, 1000);
 
 const slot = new Slot(document.getElementById("slot"), config);
 

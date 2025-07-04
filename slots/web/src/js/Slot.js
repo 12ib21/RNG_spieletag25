@@ -192,6 +192,7 @@ export default class Slot {
         this.winAmount = 0;
         this.nextMatches = null;
         this.bet = this.config.costPerSpin;
+        this.biggestWinType = "";
     }
 
     setBalance(balance) {
@@ -416,7 +417,8 @@ export default class Slot {
         setTimeout(() => {
             // gewinnmenge anzeigen
             const winDisplay = document.getElementById("winText");
-            winDisplay.innerText = `+${winAmount}€`;
+            const winTypeText = `${this.#capitalizeFirstLetter(this.biggestWinType)} Win!`;
+            winDisplay.innerHTML = `${winTypeText}<br>+${winAmount}€`;
             winDisplay.style.animation = "pop 2s forwards";
             setTimeout(() => {
                 winDisplay.style.animation = "";
@@ -425,6 +427,11 @@ export default class Slot {
 
         // 750 für die svg Animation, 2000 für die Textanimation
         return Math.max(0, lastDelay + 750 + 2000);
+    }
+
+    #capitalizeFirstLetter(str) {
+        if (str.length === 0) return str;
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     #createPolyline(points, offsetX, offsetY, color, delay) {
@@ -496,8 +503,18 @@ export default class Slot {
                 match.payoutAmount = winAmount;
                 match.patternType = patternType;
                 match.patternIndex = patternIndex;
-                if (match.matches)
+                if (match.matches) {
                     finalMatches.push(match);
+                    if (this.biggestWinType === "basic") {
+                        this.biggestWinType = match.patternType;
+                    } else if (this.biggestWinType === "medium" && (match.patternType === "big" || match.patternType === "jackpot")) {
+                        this.biggestWinType = match.patternType;
+                    } else if (this.biggestWinType === "big" && match.patternType === "jackpot") {
+                        this.biggestWinType = match.patternType;
+                    } else {
+                        this.biggestWinType = match.patternType;
+                    }
+                }
             }
         }
         return finalMatches;
@@ -514,9 +531,12 @@ export default class Slot {
     onSpinEnd(symbols) {
         this.spinButton.disabled = false;
         this.isSpinning = false;
+        const winAmount = this.winAmount;
         const time = this.#visualizeWins();
         this.#addBalance();
-        this.config.onSpinEnd?.(symbols);
+        setTimeout(() => {
+            this.config.onSpinEnd?.(this.biggestWinType, winAmount);
+        }, Math.max(0, time / 2 - 2000));
 
         if (this.autoPlayCheckbox.checked) {
             return window.setTimeout(() => this.spin(), 500 + time);

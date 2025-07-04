@@ -1,13 +1,21 @@
 import Slot from "./Slot.js";
 import bgmStart from "../assets/sound/Bgm_start.mp3";
 import bgmLoop from "../assets/sound/Bgm_loop.mp3";
+import jackpotSfx from "../assets/sound/jackpot.mp3";
+import bigWinSfx from "../assets/sound/bigWin.mp3";
+import smallMediumWinSfx from "../assets/sound/small_mediumWin.mp3";
+import coinInsertSfx from "../assets/sound/coinInsert.mp3";
+import payoutSfx from "../assets/sound/payout.mp3";
+import spinStartSfx from "../assets/sound/spinStart.mp3";
+import looseSfx from "../assets/sound/loose.mp3";
 
 // TODO: RTP soll auf 90-95% rauslaufen
 
 const windowTitle = document.title;
 const webSocketPort = 8085
 const MAX_COIN_AUFLADUNG = 10
-const bgmVolume = 1.0; // max 1
+const bgmVolume = 0.5; // max 1
+const sfxVolume = 1; // max 1
 
 const winVisualizeSvg = createOverlaySVG();
 
@@ -71,13 +79,44 @@ function startBgmListener() {
     startBgm(audioBufferStart);
 }
 
+function playSound(sound, volume) {
+    const audio = new Audio(sound);
+    audio.volume = volume;
+    audio.play().catch((err) => {
+        console.error(`Error playing sound: ${err}`);
+    });
+}
+
 const config = {
     inverted: false, // true: reels spin from top to bottom; false: reels spin from bottom to top
     onSpinStart: () => {
+        playSound(spinStartSfx, sfxVolume);
         updateUI();
     },
-    onSpinEnd: (symbols) => {
-        console.log("onSpinEnd", symbols);
+    onSpinEnd: (winType, winAmount) => {
+        if (winAmount !== 0) {
+            console.log(winType);
+            switch (winType) {
+                case "jackpot":
+                    playSound(jackpotSfx, sfxVolume);
+                    break;
+                case "big":
+                    playSound(bigWinSfx, sfxVolume);
+                    break;
+                case "medium":
+                    playSound(smallMediumWinSfx, sfxVolume);
+                    break;
+                case "basic":
+                    playSound(smallMediumWinSfx, sfxVolume);
+                    break;
+            }
+            setTimeout(() => {
+                playSound(payoutSfx, sfxVolume);
+                // TODO: hier langsam Gewinncounter hochzählen?
+            }, 2000);
+        } else {
+            playSound(looseSfx, sfxVolume);
+        }
         updateUI();
     },
     costPerSpin: 0.5,
@@ -104,6 +143,7 @@ socket.onmessage = function (event) {
             console.error("Coin amount exceeded!");
         } else {
             slot.addBalance(cns);
+            playSound(coinInsertSfx, sfxVolume);
             console.log(`+${cns} Coins`);
         }
     }

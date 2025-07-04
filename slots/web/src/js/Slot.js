@@ -1,7 +1,7 @@
 import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 
-const winFrequency = 35; // %
+const winFrequency = 350; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
 const mediumWinChance = 35 // %
@@ -135,6 +135,18 @@ const winningPatternsSvg = {
         [],
     ],
 };
+
+const colorPalette = [
+    "red",
+    "green",
+    "blue",
+    "pink",
+    "yellow",
+    "cyan",
+    "orange",
+    "purple"
+];
+
 
 export default class Slot {
     constructor(domElement, config = {}) {
@@ -389,14 +401,30 @@ export default class Slot {
         if (this.nextMatches === null || this.nextMatches === undefined) return;
         this.config.winVisualizeSvg.innerHTML = "";
         let lastDelay = 0;
+        const colorOffset = this.#getRandomInt(colorPalette.length);
         this.nextMatches.forEach((match, index) => {
-            // TODO: anzeigen mit this.nextMatches
             console.log(match);
             const points = winningPatternsSvg[match.patternType][match.patternIndex];
-            this.#createPolyline(points, match.posX, match.posY, "blue", 100 * index);
+            const color = colorPalette[(index + colorOffset) % colorPalette.length];
+            this.#createPolyline(points, match.posX, match.posY, color, 100 * index);
             lastDelay = 100 * index;
         });
-        return lastDelay + 1000; // 1000 für die svg Animation
+        if (this.nextMatches.length === 0) { // nix gewonnen
+            lastDelay = -2500; // bleiben noch 500 übrig
+        } else {
+            const winAmount = this.winAmount.toFixed(2);
+            setTimeout(() => {
+                // gewinnmenge anzeigen
+                const winDisplay = document.getElementById("winText");
+                winDisplay.innerText = `+${winAmount}€`;
+                winDisplay.style.animation = "pop 2s forwards";
+                setTimeout(() => {
+                    winDisplay.style.animation = "";
+                }, 2000);
+            }, Math.max(0, lastDelay + 850));
+        }
+        // 1000 für die svg Animation, 2000 für die Textanimation
+        return Math.max(0, lastDelay + 1000 + 2000);
     }
 
     #createPolyline(points, offsetX, offsetY, color, delay) {

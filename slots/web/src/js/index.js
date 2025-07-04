@@ -178,26 +178,32 @@ function updateUI() {
         document.title = `${windowTitle} ~ ${slot.currentBalance.toFixed(2)}€`;
     }
     if (slot.isSpinning === true) slot.spinButton.disabled = true;
+    resizeOverlaySvg(winVisualizeSvg);
 }
 
 function createOverlaySVG() {
-    const reelsDiv = document.getElementById("reels");
-
-    // Get the dimensions and position of the div
-    const rect = reelsDiv.getBoundingClientRect();
-
     // Create the SVG element
     const svgNamespace = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNamespace, "svg");
     svg.setAttribute("class", "overlay");
-    svg.setAttribute("width", rect.width.toString());
-    svg.setAttribute("height", rect.height.toString());
-    svg.style.position = "absolute";
-    svg.style.top = `${rect.top}px`;
-    svg.style.left = `${rect.left}px`;
-    svg.style.pointerEvents = "none"; // allows clicks to pass through the SVG
 
+    svg.style.position = "absolute";
+    svg.style.pointerEvents = "none"; // allows clicks to pass through the SVG
+    resizeOverlaySvg(svg);
     document.body.appendChild(svg); // ist egal wohin appenden, ist ja absolut positioniert
 
     return svg;
 }
+
+function resizeOverlaySvg(svg) {
+    const reelsDiv = document.getElementById("reels");
+    const rect = reelsDiv.getBoundingClientRect();
+    svg.setAttribute("width", rect.width.toString());
+    svg.setAttribute("height", rect.height.toString());
+    svg.style.top = `${rect.top}px`;
+    svg.style.left = `${rect.left}px`;
+}
+
+window.onresize = () => {
+    resizeOverlaySvg(winVisualizeSvg);
+};

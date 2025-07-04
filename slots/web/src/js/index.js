@@ -1,4 +1,6 @@
 import Slot from "./Slot.js";
+import bgmStart from "../assets/sound/Bgm_start.mp3";
+import bgmLoop from "../assets/sound/Bgm_loop.mp3";
 
 // TODO: RTP soll auf 90-95% rauslaufen
 
@@ -8,9 +10,66 @@ const MAX_COIN_AUFLADUNG = 10
 
 const winVisualizeSvg = createOverlaySVG();
 
+let bgmStarted = false;
+let audioContext, audioBufferStart, audioBufferLoop, sourceNode;
+
+// Load the audio file
+function loadAudio() {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    loadBuffer(bgmStart).then(buffer => {
+        audioBufferStart = buffer;
+        return loadBuffer(bgmLoop);
+    }).then(buffer => {
+        audioBufferLoop = buffer;
+    });
+}
+
+function loadBuffer(url) {
+    return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.responseType = 'arraybuffer';
+
+        request.onload = function () {
+            audioContext.decodeAudioData(request.response, function (buffer) {
+                resolve(buffer);
+            }, reject);
+        };
+        request.send();
+    });
+}
+
+loadAudio();
+
+function startBgm(buffer) {
+    if (buffer) {
+        sourceNode = audioContext.createBufferSource();
+        sourceNode.buffer = buffer;
+        sourceNode.connect(audioContext.destination);
+        sourceNode.start(0, 0);
+        sourceNode.onended = () => {
+            if (buffer === audioBufferStart) {
+                startBgm(audioBufferLoop);
+            } else {
+                startBgm(audioBufferLoop);
+            }
+        };
+    }
+}
+
+document.addEventListener('click', startBgmListener);
+document.addEventListener('keydown', startBgmListener);
+document.addEventListener('touchstart', startBgmListener);
+
+function startBgmListener() {
+    if (bgmStarted) return;
+    bgmStarted = true;
+    startBgm(audioBufferStart);
+}
+
 const config = {
     inverted: false, // true: reels spin from top to bottom; false: reels spin from bottom to top
-    onSpinStart: (symbols) => {
+    onSpinStart: () => {
         updateUI();
     },
     onSpinEnd: (symbols) => {

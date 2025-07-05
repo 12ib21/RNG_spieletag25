@@ -82,6 +82,7 @@ function startBgmListener() {
 function playSound(sound, volume) {
     const audio = new Audio(sound);
     audio.volume = volume;
+    audio.disableRemotePlayback = true;
     audio.play().catch((err) => {
         console.error(`Error playing sound: ${err}`);
     });
@@ -111,17 +112,43 @@ const config = {
                     break;
             }
             setTimeout(() => {
+                const baseAmount = slot.currentBalance - winAmount;
                 playSound(payoutSfx, sfxVolume);
-                // TODO: hier langsam Gewinncounter hochzählen?
+                incrementBal(baseAmount, winAmount);
+                updateUI();
             }, 2000);
         } else {
             playSound(looseSfx, sfxVolume);
+            updateUI();
         }
-        updateUI();
     },
     costPerSpin: 0.5,
     winVisualizeSvg: winVisualizeSvg,
 };
+
+function incrementBal(baseAmount, add) {
+    let div = 0.01;
+    if (add < 10) div = 0.01;
+    else if (add < 50) div = 0.05;
+    else if (add < 100) div = 0.1;
+    else div = 2;
+    const incrementAmount = Math.floor(add / div);
+    const balElem = document.getElementById("bal");
+    const time = 1000 / incrementAmount;
+    let currentAdd = 0;
+    clearInterval(window.payoutIncrementInterval);
+    if (incrementAmount > 0 && !slot.freeToPlay) {
+        window.payoutIncrementInterval = setInterval(() => {
+            if (currentAdd < incrementAmount) {
+                balElem.innerText = (baseAmount + ((currentAdd + 1) * div)).toFixed(2);
+                currentAdd++;
+            } else {
+                clearInterval(window.payoutIncrementInterval);
+                slot.setBalance(baseAmount + add);
+            }
+        }, time);
+    }
+}
 
 setTimeout(updateUI, 1000);
 
@@ -142,9 +169,8 @@ socket.onmessage = function (event) {
         if (cns > MAX_COIN_AUFLADUNG) {
             console.error("Coin amount exceeded!");
         } else {
-            slot.addBalance(cns);
             playSound(coinInsertSfx, sfxVolume);
-            console.log(`+${cns} Coins`);
+            incrementBal(slot.currentBalance, cns);
         }
     }
     if (event.data.toString().startsWith('ftpon')) {
@@ -152,9 +178,9 @@ socket.onmessage = function (event) {
     }
     if (event.data.toString().startsWith('ftpoff')) {
         slot.freeToPlay = false;
-
     }
-    updateUI();
+    if (!slot.isSpinning)
+        updateUI();
 };
 
 socket.onopen = function () {

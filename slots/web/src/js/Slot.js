@@ -204,6 +204,7 @@ export default class Slot {
     }
 
     spin() {
+        if (this.isSpinning) return;
         if (this.currentBalance < this.config.costPerSpin && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
             return;
@@ -466,7 +467,6 @@ export default class Slot {
     }
 
     #addBalance() {
-        // TODO: langsam hochzählen - schaut schicker aus
         this.currentBalance += this.winAmount;
         this.winAmount = 0;
     }
@@ -528,18 +528,19 @@ export default class Slot {
         this.config.onSpinStart?.(symbols);
     }
 
-    onSpinEnd(symbols) {
-        this.spinButton.disabled = false;
-        this.isSpinning = false;
+    onSpinEnd() {
         const winAmount = this.winAmount;
         const time = this.#visualizeWins();
         this.#addBalance();
         setTimeout(() => {
             this.config.onSpinEnd?.(this.biggestWinType, winAmount);
+            setTimeout(() => {
+                this.isSpinning = false;
+                this.spinButton.disabled = false;
+                if (this.autoPlayCheckbox.checked) {
+                    return window.setTimeout(() => this.spin(), 500);
+                }
+            }, 2500);
         }, Math.max(0, time / 2 - 2000));
-
-        if (this.autoPlayCheckbox.checked) {
-            return window.setTimeout(() => this.spin(), 500 + time);
-        }
     }
 }

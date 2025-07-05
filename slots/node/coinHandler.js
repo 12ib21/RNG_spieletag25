@@ -35,10 +35,14 @@ wss.on('connection', (ws) => {
             console.log(`Sending +${cns} Coins`);
             ws.send(`cns:${cns}`);
         }
-        if (data.toString() === 'ftpoff')
+        if (data.toString() === 'ftpoff') // Free to play aus
             ws.send('ftpoff');
-        if (data.toString() === 'ftpon')
+        if (data.toString() === 'ftpon') // Free to play an
             ws.send('ftpon');
+        if (data.toString() === 'rtpn') // normaler RTP
+            ws.send('rtpn');
+        if (data.toString() === 'rtps') // niedriger RTP
+            ws.send('rtps');
     });
 
     setTimeout(() => {

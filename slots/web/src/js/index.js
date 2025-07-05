@@ -10,37 +10,52 @@ import spinStartSfx from "../assets/sound/spinStart.mp3";
 import looseSfx from "../assets/sound/loose.mp3";
 
 const windowTitle = document.title;
-const webSocketPort = 8085
-const MAX_COIN_AUFLADUNG = 10
+const webSocketPort = 8085;
+const MAX_COIN_AUFLADUNG = 10;
 const bgmVolume = 0.5; // max 1
-const sfxVolume = 1; // max 1
+const sfxVolume = 1; // max 13
+const maxSelectableBet = 10000; // all in zählt seperat
+const keyConfig = { // space: " ", enter: "enter", etc
+    spin: " ",
+    allIn: "Enter",
+    lowerBet: "a",
+    increaseBet: "d",
+};
 
 const winVisualizeSvg = createOverlaySVG();
 
 let bgmStarted = false;
 let audioContext, audioBufferStart, audioBufferLoop, sourceNode;
+let audioLoaded = false;
 
 // Load the audio file
 function loadAudio() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    loadBuffer(bgmStart).then(buffer => {
-        audioBufferStart = buffer;
-        return loadBuffer(bgmLoop);
-    }).then(buffer => {
-        audioBufferLoop = buffer;
-    });
+    loadBuffer(bgmStart)
+        .then((buffer) => {
+            audioBufferStart = buffer;
+            return loadBuffer(bgmLoop);
+        })
+        .then((buffer) => {
+            audioBufferLoop = buffer;
+            audioLoaded = true;
+        });
 }
 
 function loadBuffer(url) {
     return new Promise((resolve, reject) => {
         const request = new XMLHttpRequest();
-        request.open('GET', url, true);
-        request.responseType = 'arraybuffer';
+        request.open("GET", url, true);
+        request.responseType = "arraybuffer";
 
         request.onload = function () {
-            audioContext.decodeAudioData(request.response, function (buffer) {
-                resolve(buffer);
-            }, reject);
+            audioContext.decodeAudioData(
+                request.response,
+                function (buffer) {
+                    resolve(buffer);
+                },
+                reject,
+            );
         };
         request.send();
     });
@@ -49,6 +64,7 @@ function loadBuffer(url) {
 loadAudio();
 
 function startBgm(buffer) {
+    if (!audioLoaded) return;
     if (buffer) {
         const gainNode = audioContext.createGain();
         gainNode.gain.setValueAtTime(bgmVolume, 0);
@@ -67,14 +83,23 @@ function startBgm(buffer) {
     }
 }
 
-document.addEventListener('click', startBgmListener);
-document.addEventListener('keydown', startBgmListener);
-document.addEventListener('touchstart', startBgmListener);
+document.addEventListener("click", startBgmListener);
+document.addEventListener("keydown", startBgmListener);
+document.addEventListener("touchstart", startBgmListener);
 
 function startBgmListener() {
     if (bgmStarted) return;
     bgmStarted = true;
-    startBgm(audioBufferStart);
+    if (audioLoaded)
+        startBgm(audioBufferStart);
+    else {
+        const int = setInterval(() => {
+            if (audioLoaded) {
+                startBgm(audioBufferStart);
+                clearInterval(int);
+            }
+        }, 250);
+    }
 }
 
 function playSound(sound, volume) {
@@ -120,15 +145,14 @@ const config = {
             updateUI();
         }
     },
-    costPerSpin: 0.5,
     winVisualizeSvg: winVisualizeSvg,
 };
 
 function incrementBal(baseAmount, add) {
     let div = 0.01;
     if (add < 5) div = 0.01;
-    else if (add < 50) div = 0.10;
-    else if (add < 100) div = 0.50;
+    else if (add < 50) div = 0.1;
+    else if (add < 100) div = 0.5;
     else div = 2;
     const incrementAmount = Math.floor(add / div);
     const balElem = document.getElementById("bal");
@@ -139,7 +163,7 @@ function incrementBal(baseAmount, add) {
     if (incrementAmount > 0 && !slot.freeToPlay) {
         window.payoutIncrementInterval = setInterval(() => {
             if (currentAdd < incrementAmount) {
-                balElem.innerText = (baseAmount + ((currentAdd + 1) * div)).toFixed(2);
+                balElem.innerText = (baseAmount + (currentAdd + 1) * div).toFixed(2);
                 currentAdd++;
             } else {
                 clearInterval(window.payoutIncrementInterval);
@@ -152,17 +176,13 @@ function incrementBal(baseAmount, add) {
 setTimeout(updateUI, 1000);
 
 const slot = new Slot(document.getElementById("slot"), config);
-
-// TODO: jackpot automatisch in updateUI aktualisieren,
-//  dafür muss aber calcJackpot noch umgeschrieben werden,
-//  dass nicht auf die this variablen vom aktiven spiel zugegriffen wird
-const jackpot = slot.calcJackpotAmount();
-
-// WebSocket connection to coin server
-const socket = new WebSocket(`ws://localhost:${webSocketPort}`);
+let jackpot = slot.calcJackpotAmount();
+let oldBet = slot.bet;
+// WebSocket connection to server
+const socket = new WebSocket(`ws://${window.location.hostname}:${webSocketPort}`);
 
 socket.onmessage = function (event) {
-    if (event.data.toString().startsWith('cns:')) {
+    if (event.data.toString().startsWith("cns:")) {
         slot.freeToPlay = false;
         let cns = parseFloat(event.data.slice(4));
         if (cns > MAX_COIN_AUFLADUNG) {
@@ -172,34 +192,132 @@ socket.onmessage = function (event) {
             incrementBal(slot.currentBalance, cns);
         }
     }
-    if (event.data.toString().startsWith('ftpon')) {
+    if (event.data.toString().startsWith("ftpon")) {
         slot.freeToPlay = true;
     }
-    if (event.data.toString().startsWith('ftpoff')) {
+    if (event.data.toString().startsWith("ftpoff")) {
         slot.freeToPlay = false;
     }
-    if (!slot.isSpinning)
-        updateUI();
+    if (event.data.toString().startsWith("rtpn")) {
+        slot.externalRtpCorrection = 1;
+    }
+    if (event.data.toString().startsWith("rtps")) {
+        slot.externalRtpCorrection = 0.5;
+    }
+    if (!slot.isSpinning) updateUI();
 };
 
 socket.onopen = function () {
-    console.log('WebSocket connection established');
+    console.log("WebSocket connection established");
 };
 
 socket.onerror = function (error) {
-    console.error('WebSocket error: ', error);
+    console.error("WebSocket error: ", error);
 };
 
+document.getElementById('lowerBet').addEventListener("click", () => decreaseBet());
+document.getElementById('allIn').addEventListener("click", () => allIn());
+document.getElementById('increaseBet').addEventListener("click", () => increaseBet());
+
+function allIn() {
+    if (slot.isSpinning) return;
+    if (slot.bet === slot.currentBalance) {
+        setBet(oldBet);
+    } else {
+        setBet(slot.currentBalance);
+        const winDisplay = document.getElementById("winText");
+        winDisplay.innerHTML = `All in!<br>${slot.bet.toFixed(2)}€`;
+        winDisplay.style.animation = "pop 2s forwards";
+        setTimeout(() => {
+            winDisplay.style.animation = "";
+        }, 2000);
+    }
+}
+
+function increaseBet() {
+    if (slot.isSpinning) return;
+    const currentBet = slot.bet;
+    let newBet;
+    if (currentBet < 0.05) {
+        newBet = Math.min(currentBet + 0.01, maxSelectableBet);
+    } else if (currentBet < 1) {
+        newBet = Math.min(currentBet + 0.05, maxSelectableBet);
+    } else if (currentBet < 10) {
+        newBet = Math.min(currentBet + 0.5, maxSelectableBet);
+    } else if (currentBet < 100) {
+        newBet = Math.min(currentBet + 5, maxSelectableBet);
+    } else if (currentBet < 500) {
+        newBet = Math.min(currentBet + 10, maxSelectableBet);
+    } else if (currentBet < 1000) {
+        newBet = Math.min(currentBet + 50, maxSelectableBet);
+    } else {
+        newBet = Math.min(currentBet + 100, maxSelectableBet);
+    }
+    setBet(Math.round(newBet * 100) / 100);
+}
+
+function decreaseBet() {
+    if (slot.isSpinning) return;
+    const currentBet = slot.bet;
+    console.log(currentBet);
+    let newBet;
+    if (currentBet > 1000) {
+        newBet = Math.max(currentBet - 100, 0.01);
+    } else if (currentBet > 500) {
+        newBet = Math.max(currentBet - 50, 0.01);
+    } else if (currentBet > 100) {
+        newBet = Math.max(currentBet - 10, 0.01);
+    } else if (currentBet > 10) {
+        newBet = Math.max(currentBet - 5, 0.01);
+    } else if (currentBet > 1) {
+        newBet = Math.max(currentBet - 0.5, 0.01);
+    } else if (currentBet > 0.05) {
+        newBet = Math.max(currentBet - 0.05, 0.01);
+    } else {
+        newBet = Math.max(currentBet - 0.01, 0.01);
+    }
+    setBet(Math.round(newBet * 100) / 100);
+}
+
+function setBet(betAmount) {
+    oldBet = slot.bet;
+    slot.bet = betAmount;
+    document.getElementById('lowerBet').disabled = betAmount <= 0.01;
+    document.getElementById('increaseBet').disabled = betAmount >= maxSelectableBet;
+    jackpot = slot.calcJackpotAmount();
+    updateUI();
+}
+
+window.addEventListener("keydown", (e) => {
+    const key = e.key.toLowerCase();
+    console.log(key);
+    if (key === keyConfig.spin.toLowerCase()) {
+        slot.spinButton.click();
+    } else if (key === keyConfig.allIn.toLowerCase()) {
+        allIn();
+    } else if (key === keyConfig.lowerBet.toLowerCase()) {
+        decreaseBet();
+    } else if (key === keyConfig.increaseBet.toLowerCase()) {
+        increaseBet();
+    }
+});
+
 function updateUI() {
-    document.getElementById('cost').innerText = slot.config.costPerSpin.toFixed(2);
-    document.getElementById('jp').innerHTML = jackpot.toFixed(2);
+    document.getElementById("cost").innerText =
+        slot.bet.toFixed(2);
+    document.getElementById("jp").innerHTML = jackpot.toFixed(2);
     if (slot.freeToPlay === true) {
         slot.spinButton.disabled = false;
-        document.getElementById('bal').innerHTML = 'FTP ~ &infin;';
+        document.getElementById("bal").innerHTML = "FTP ~ &infin;";
         document.title = `${windowTitle} ~ FTP`;
+        document.getElementById("bal").parentElement.style.color = "";
     } else {
-        slot.spinButton.disabled = slot.currentBalance < slot.config.costPerSpin;
-        document.getElementById('bal').innerText = slot.currentBalance.toFixed(2);
+        slot.spinButton.disabled = slot.currentBalance < slot.bet;
+        document.getElementById("bal").innerText = slot.currentBalance.toFixed(2);
+        if (slot.bet > slot.currentBalance)
+            document.getElementById("bal").parentElement.style.color = "red";
+        else
+            document.getElementById("bal").parentElement.style.color = "";
         document.title = `${windowTitle} ~ ${slot.currentBalance.toFixed(2)}€`;
     }
     if (slot.isSpinning === true) slot.spinButton.disabled = true;

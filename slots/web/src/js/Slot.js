@@ -1,7 +1,7 @@
 import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 
-const rtpCorrection = 0.50;
+const rtpCorrection = 0.45;
 const winFrequency = 40; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
@@ -191,8 +191,9 @@ export default class Slot {
         this.isSpinning = false;
         this.winAmount = 0;
         this.nextMatches = null;
-        this.bet = this.config.costPerSpin;
+        this.bet = 0.5;
         this.biggestWinType = "";
+        this.externalRtpCorrection = 1;
     }
 
     setBalance(balance) {
@@ -205,12 +206,12 @@ export default class Slot {
 
     spin() {
         if (this.isSpinning) return;
-        if (this.currentBalance < this.config.costPerSpin && this.freeToPlay === false) {
+        if (this.currentBalance < this.bet && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
             return;
         }
         if (this.freeToPlay === false)
-            this.currentBalance -= this.config.costPerSpin;
+            this.currentBalance -= this.bet;
 
         this.currentSymbols = this.nextSymbols;
         this.nextSymbols = this.#convertScreenToSlots(this.#generateScreen());
@@ -277,7 +278,8 @@ export default class Slot {
 
     #selectWinningPattern() {
         // not always win
-        const winFrequencyNormalized = winFrequency / 100;
+        const winFrequencyNormalized = (winFrequency * this.externalRtpCorrection) / 100;
+        console.log(winFrequencyNormalized);
         if (Math.random() < winFrequencyNormalized) { // jetzt gewinnt der spieler
             const rand = Math.floor(Math.random() * 1000) / 10;
             let patterns;
@@ -333,12 +335,12 @@ export default class Slot {
         return screen;
     }
 
-    #calcWinAmount(symbols) {
+    #calcWinAmount(symbols, overwrite_ths = true) {
         // symbols ist im slot Format!
-        this.winAmount = 0;
+        let winAmount = 0;
         let matches = [];
         winningPatterns.basic.forEach((pattern, index) => {
-            const res = this.#getPatternMatches(pattern, symbols, "basic", index);
+            const res = this.#getPatternMatches(pattern, symbols, "basic", index, overwrite_ths);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
@@ -346,7 +348,7 @@ export default class Slot {
             }
         });
         winningPatterns.medium.forEach((pattern, index) => {
-            const res = this.#getPatternMatches(pattern, symbols, "medium", index);
+            const res = this.#getPatternMatches(pattern, symbols, "medium", index, overwrite_ths);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
@@ -354,7 +356,7 @@ export default class Slot {
             }
         });
         winningPatterns.big.forEach((pattern, index) => {
-            const res = this.#getPatternMatches(pattern, symbols, "big", index);
+            const res = this.#getPatternMatches(pattern, symbols, "big", index, overwrite_ths);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
@@ -362,19 +364,23 @@ export default class Slot {
             }
         });
         winningPatterns.jackpot.forEach((pattern, index) => {
-            const res = this.#getPatternMatches(pattern, symbols, "jackpot", index);
+            const res = this.#getPatternMatches(pattern, symbols, "jackpot", index, overwrite_ths);
             if (res.length !== 0) {
                 res.forEach(match => {
                     matches.push(match);
                 });
             }
         });
-        this.nextMatches = matches;
+        if (overwrite_ths)
+            this.nextMatches = matches;
         matches.forEach(match => {
-            this.winAmount += this.#calcWinAmountForPattern(match.payoutAmount, match.symbol) * this.bet;
+            winAmount += this.#calcWinAmountForPattern(match.payoutAmount, match.symbol) * this.bet;
         });
-        console.log(matches);
-        console.log(`win amount: ${this.winAmount}`);
+        if (overwrite_ths) {
+            console.log(matches);
+            console.log(`win amount: ${winAmount}`);
+        }
+        return winAmount;
     }
 
     #calcWinAmountForPattern(baseWinAmount, symbol) {
@@ -383,8 +389,6 @@ export default class Slot {
     }
 
     calcJackpotAmount() {
-        const winAmount = this.winAmount;
-        const nextMatches = this.nextMatches;
         const symbols = [
             [default_symbol, default_symbol, default_symbol],
             [default_symbol, default_symbol, default_symbol],
@@ -392,11 +396,7 @@ export default class Slot {
             [default_symbol, default_symbol, default_symbol],
             [default_symbol, default_symbol, default_symbol],
         ]
-        this.#calcWinAmount(symbols);
-        const jackpot = this.winAmount;
-        this.winAmount = winAmount;
-        this.nextMatches = nextMatches;
-        return jackpot;
+        return this.#calcWinAmount(symbols, false);
     }
 
     #visualizeWins() {
@@ -471,7 +471,7 @@ export default class Slot {
         this.winAmount = 0;
     }
 
-    #getPatternMatches(_pattern, slotSymbols, patternType, patternIndex) {
+    #getPatternMatches(_pattern, slotSymbols, patternType, patternIndex, overwrite_ths) {
         let finalMatches = [];
         const winAmount = _pattern[_pattern.length - 1];
         let pattern = _pattern.slice(0, -1);
@@ -505,14 +505,16 @@ export default class Slot {
                 match.patternIndex = patternIndex;
                 if (match.matches) {
                     finalMatches.push(match);
-                    if (this.biggestWinType === "basic") {
-                        this.biggestWinType = match.patternType;
-                    } else if (this.biggestWinType === "medium" && (match.patternType === "big" || match.patternType === "jackpot")) {
-                        this.biggestWinType = match.patternType;
-                    } else if (this.biggestWinType === "big" && match.patternType === "jackpot") {
-                        this.biggestWinType = match.patternType;
-                    } else {
-                        this.biggestWinType = match.patternType;
+                    if (overwrite_ths) {
+                        if (this.biggestWinType === "basic") {
+                            this.biggestWinType = match.patternType;
+                        } else if (this.biggestWinType === "medium" && (match.patternType === "big" || match.patternType === "jackpot")) {
+                            this.biggestWinType = match.patternType;
+                        } else if (this.biggestWinType === "big" && match.patternType === "jackpot") {
+                            this.biggestWinType = match.patternType;
+                        } else {
+                            this.biggestWinType = match.patternType;
+                        }
                     }
                 }
             }
@@ -524,7 +526,7 @@ export default class Slot {
         this.spinButton.disabled = true;
         this.isSpinning = true;
         this.config.winVisualizeSvg.innerHTML = "";
-        this.#calcWinAmount(symbols);
+        this.winAmount = this.#calcWinAmount(symbols);
         this.config.onSpinStart?.(symbols);
     }
 

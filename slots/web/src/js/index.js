@@ -151,9 +151,12 @@ const config = {
 function incrementBal(baseAmount, add) {
     let div = 0.01;
     if (add < 5) div = 0.01;
-    else if (add < 50) div = 0.1;
-    else if (add < 100) div = 0.5;
-    else div = 2;
+    else if (add < 50) div = 0.11;
+    else if (add < 100) div = 0.51;
+    else if (add < 1000) div = 2.51;
+    else if (add < 5000) div = 9.51;
+    else if (add < 10000) div = 21.01;
+    else div = 61.01;
     const incrementAmount = Math.floor(add / div);
     const balElem = document.getElementById("bal");
     const time = 1000 / incrementAmount;

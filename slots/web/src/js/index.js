@@ -9,8 +9,6 @@ import payoutSfx from "../assets/sound/payout.mp3";
 import spinStartSfx from "../assets/sound/spinStart.mp3";
 import looseSfx from "../assets/sound/loose.mp3";
 
-// TODO: RTP soll auf 90-95% rauslaufen
-
 const windowTitle = document.title;
 const webSocketPort = 8085
 const MAX_COIN_AUFLADUNG = 10
@@ -128,15 +126,16 @@ const config = {
 
 function incrementBal(baseAmount, add) {
     let div = 0.01;
-    if (add < 10) div = 0.01;
-    else if (add < 50) div = 0.05;
-    else if (add < 100) div = 0.1;
+    if (add < 5) div = 0.01;
+    else if (add < 50) div = 0.10;
+    else if (add < 100) div = 0.50;
     else div = 2;
     const incrementAmount = Math.floor(add / div);
     const balElem = document.getElementById("bal");
     const time = 1000 / incrementAmount;
     let currentAdd = 0;
     clearInterval(window.payoutIncrementInterval);
+    slot.setBalance(baseAmount + add);
     if (incrementAmount > 0 && !slot.freeToPlay) {
         window.payoutIncrementInterval = setInterval(() => {
             if (currentAdd < incrementAmount) {
@@ -144,7 +143,7 @@ function incrementBal(baseAmount, add) {
                 currentAdd++;
             } else {
                 clearInterval(window.payoutIncrementInterval);
-                slot.setBalance(baseAmount + add);
+                updateUI();
             }
         }, time);
     }

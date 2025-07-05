@@ -1,7 +1,8 @@
 import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 
-const winFrequency = 350; // %
+const rtpCorrection = 0.60;
+const winFrequency = 40; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
 const mediumWinChance = 35 // %
@@ -19,7 +20,7 @@ const winningPatterns = {
             ["+"],
             ["+"],
             ["+"],
-            3
+            2
         ],
     ],
     medium: [
@@ -55,13 +56,13 @@ const winningPatterns = {
             ["+", "-", "-", "-", "-"],
             ["-", "+", "+", "+", "-"],
             ["-", "-", "-", "-", "+"],
-            50
+            40
         ],
         [
             ["-", "-", "-", "-", "+"],
             ["-", "+", "+", "+", "-"],
             ["+", "-", "-", "-", "-"],
-            50
+            40
         ],
     ],
     jackpot: [
@@ -500,7 +501,7 @@ export default class Slot {
                 match.posX = i;
                 match.posY = j;
                 match.pattern = pattern;
-                match.payoutAmount = winAmount;
+                match.payoutAmount = winAmount * rtpCorrection;
                 match.patternType = patternType;
                 match.patternIndex = patternIndex;
                 if (match.matches) {
@@ -538,7 +539,7 @@ export default class Slot {
                 this.isSpinning = false;
                 this.spinButton.disabled = false;
                 if (this.autoPlayCheckbox.checked) {
-                    return window.setTimeout(() => this.spin(), 500);
+                    return window.setTimeout(() => this.spin(), winAmount === 0 ? 250 : 1000);
                 }
             }, 2500);
         }, Math.max(0, time / 2 - 2000));

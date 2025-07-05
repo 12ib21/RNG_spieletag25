@@ -1,7 +1,7 @@
 import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 
-const rtpCorrection = 0.45;
+const rtpCorrection = 0.40;
 const winFrequency = 40; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins

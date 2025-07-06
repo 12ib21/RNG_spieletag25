@@ -14,9 +14,10 @@ const windowTitle = document.title;
 const webSocketPort = 8085;
 const MAX_COIN_AUFLADUNG = 10;
 const bgmVolume = 0.5; // max 1
-const sfxVolume = 1; // max 13
+const sfxVolume = 1; // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
 const autoFullscreen = false;
+const preventDevTools = false;
 const keyConfig = { // space: " ", enter: "enter", etc
     spin: " ",
     allIn: "Enter",
@@ -315,6 +316,9 @@ function setBet(betAmount) {
 window.addEventListener("keydown", (e) => {
     const key = e.key.toLowerCase();
     console.log(key);
+    if (key === "f12" && preventDevTools) {
+        e.preventDefault();
+    }
     if (key === keyConfig.spin.toLowerCase()) {
         slot.spinButton.click();
     } else if (key === keyConfig.allIn.toLowerCase()) {

@@ -1,5 +1,6 @@
 import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
+import rng from "./trueRNG.js";
 
 const rtpCorrection = 0.40;
 const winFrequency = 40; // %
@@ -160,13 +161,7 @@ export default class Slot {
             [default_symbol, default_symbol, default_symbol],
         ];
 
-        this.nextSymbols = [
-            [default_symbol, default_symbol, default_symbol],
-            [default_symbol, default_symbol, default_symbol],
-            [default_symbol, default_symbol, default_symbol],
-            [default_symbol, default_symbol, default_symbol],
-            [default_symbol, default_symbol, default_symbol],
-        ];
+        this.nextSymbols = this.currentSymbols;
 
         this.container = domElement;
 
@@ -279,9 +274,9 @@ export default class Slot {
     #selectWinningPattern() {
         // not always win
         const winFrequencyNormalized = (winFrequency * this.externalRtpCorrection) / 100;
-        console.log(winFrequencyNormalized);
-        if (Math.random() < winFrequencyNormalized) { // jetzt gewinnt der spieler
-            const rand = Math.floor(Math.random() * 1000) / 10;
+        const randomValues = rng.generateTrueRandomValues(3); // generate 3 at a time to avoid biasing
+        if (randomValues[0] < winFrequencyNormalized) { // jetzt gewinnt der spieler
+            const rand = Math.floor(randomValues[1] * 1000) / 10;
             let patterns;
             if (rand < jackpotChance)
                 patterns = winningPatterns.jackpot;
@@ -291,7 +286,7 @@ export default class Slot {
                 patterns = winningPatterns.medium;
             else patterns = winningPatterns.basic;
 
-            return patterns[Math.floor(Math.random() * patterns.length)].slice(0, -1);
+            return patterns[Math.min(Math.floor(randomValues[2] * patterns.length), patterns.length - 1)].slice(0, -1);
         }
         return [[]];
     }

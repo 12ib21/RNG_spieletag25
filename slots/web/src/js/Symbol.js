@@ -43,6 +43,11 @@ export default class Symbol {
             "moehrle",
             "temmel",
             "volker",
+            "woerle",
+            "mueller_deuschle",
+            "rudolf",
+            "deuschle",
+            "bernhoerster",
             "default",
         ];
     }

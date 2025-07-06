@@ -10,6 +10,9 @@ const mediumWinChance = 35 // %
 const bigWinChance = 14.9 // %
 const jackpotChance = 0.1 // %
 
+const initialBalance = 0;
+const initialBet = 0.1; // €
+
 const default_symbol = "default";
 const winningPatterns = {
     basic: [
@@ -181,12 +184,12 @@ export default class Slot {
 
         this.config = config;
 
-        this.currentBalance = 0;
+        this.currentBalance = initialBalance;
         this.freeToPlay = false;
         this.isSpinning = false;
         this.winAmount = 0;
         this.nextMatches = null;
-        this.bet = 0.5;
+        this.bet = initialBet;
         this.biggestWinType = "";
         this.externalRtpCorrection = 1;
     }
@@ -278,11 +281,11 @@ export default class Slot {
         if (randomValues[0] < winFrequencyNormalized) { // jetzt gewinnt der spieler
             const rand = Math.floor(randomValues[1] * 1000) / 10;
             let patterns;
-            if (rand < jackpotChance)
+            if (rand < jackpotChance * this.externalRtpCorrection)
                 patterns = winningPatterns.jackpot;
-            else if (rand < bigWinChance)
+            else if (rand < bigWinChance * this.externalRtpCorrection)
                 patterns = winningPatterns.big;
-            else if (rand < mediumWinChance)
+            else if (rand < mediumWinChance * this.externalRtpCorrection)
                 patterns = winningPatterns.medium;
             else patterns = winningPatterns.basic;
 

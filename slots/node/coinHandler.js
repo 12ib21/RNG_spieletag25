@@ -45,9 +45,9 @@ wss.on('connection', (ws) => {
             ws.send('rtps');
     });
 
-    setTimeout(() => {
+    setInterval(() => {
         ws.send('hb');
-    }, 5000);
+    }, 1000);
 
     port.on('error', (err) => {
         console.error('Error SP: ', err.message);

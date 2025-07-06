@@ -23,7 +23,10 @@ const keyConfig = { // space: " ", enter: "enter", etc
     allIn: "Enter",
     lowerBet: "a",
     increaseBet: "d",
+    addEur: "q",
+    addEurPass: "es",
 };
+const WEBSOCKET_TIMEOUT = 1500;
 
 // fullscreen
 if (autoFullscreen) {
@@ -203,42 +206,52 @@ setTimeout(updateUI, 1000);
 const slot = new Slot(document.getElementById("slot"), config);
 let jackpot = slot.calcJackpotAmount();
 let oldBet = slot.bet;
+
 // WebSocket connection to server
-const socket = new WebSocket(`ws://${window.location.hostname}:${webSocketPort}`);
+let socketLastReceived = Date.now();
+setInterval(() => {
+    if (Date.now() - socketLastReceived >= WEBSOCKET_TIMEOUT) {
+        console.log("Websocket timeout, reconnecting..");
+        initWebSocket();
+    }
+}, 1000);
 
-socket.onmessage = function (event) {
-    if (event.data.toString().startsWith("cns:")) {
-        slot.freeToPlay = false;
-        let cns = parseFloat(event.data.slice(4));
-        if (cns > MAX_COIN_AUFLADUNG) {
-            console.error("Coin amount exceeded!");
-        } else {
-            playSound(coinInsertSfx, sfxVolume);
-            incrementBal(slot.currentBalance, cns);
+function initWebSocket() {
+    const socket = new WebSocket(`ws://${window.location.hostname}:${webSocketPort}`);
+
+    socket.onmessage = function (event) {
+        socketLastReceived = Date.now();
+        if (event.data.toString().startsWith("cns:")) {
+            slot.freeToPlay = false;
+            let cns = parseFloat(event.data.slice(4));
+            if (cns > MAX_COIN_AUFLADUNG) {
+                console.error("Coin amount exceeded!");
+            } else {
+                playSound(coinInsertSfx, sfxVolume);
+                incrementBal(slot.currentBalance, cns);
+            }
         }
-    }
-    if (event.data.toString().startsWith("ftpon")) {
-        slot.freeToPlay = true;
-    }
-    if (event.data.toString().startsWith("ftpoff")) {
-        slot.freeToPlay = false;
-    }
-    if (event.data.toString().startsWith("rtpn")) {
-        slot.externalRtpCorrection = 1;
-    }
-    if (event.data.toString().startsWith("rtps")) {
-        slot.externalRtpCorrection = 0.5;
-    }
-    if (!slot.isSpinning) updateUI();
-};
-
-socket.onopen = function () {
-    console.log("WebSocket connection established");
-};
-
-socket.onerror = function (error) {
-    console.error("WebSocket error: ", error);
-};
+        if (event.data.toString().startsWith("ftpon")) {
+            slot.freeToPlay = true;
+        }
+        if (event.data.toString().startsWith("ftpoff")) {
+            slot.freeToPlay = false;
+        }
+        if (event.data.toString().startsWith("rtpn")) {
+            slot.externalRtpCorrection = 1;
+        }
+        if (event.data.toString().startsWith("rtps")) {
+            slot.externalRtpCorrection = 0.5;
+        }
+        if (!slot.isSpinning) updateUI();
+    };
+    socket.onopen = function () {
+        console.log("WebSocket connection established");
+    };
+    socket.onerror = function (error) {
+        console.error("WebSocket error: ", error);
+    };
+}
 
 document.getElementById('lowerBet').addEventListener("click", () => decreaseBet());
 document.getElementById('allIn').addEventListener("click", () => allIn());
@@ -327,6 +340,16 @@ window.addEventListener("keydown", (e) => {
         decreaseBet();
     } else if (key === keyConfig.increaseBet.toLowerCase()) {
         increaseBet();
+    } else if (key === keyConfig.addEur.toLowerCase()) {
+        const res = prompt("Passwort für Guthabenänderung");
+        if (res === keyConfig.addEurPass) {
+            try {
+                const balChg = parseFloat(parseFloat(prompt("Menge?", "10")).toFixed(2));
+                slot.addBalance(balChg);
+                updateUI();
+            } catch (e) {
+            }
+        }
     }
 });
 

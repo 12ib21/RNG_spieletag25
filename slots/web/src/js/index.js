@@ -7,6 +7,7 @@ import smallMediumWinSfx from "../assets/sound/small_mediumWin.mp3";
 import coinInsertSfx from "../assets/sound/coinInsert.mp3";
 import payoutSfx from "../assets/sound/payout.mp3";
 import spinStartSfx from "../assets/sound/spinStart.mp3";
+import reelsSpinningSfx from "../assets/sound/reelsSpinning.mp3";
 import looseSfx from "../assets/sound/loose.mp3";
 
 const windowTitle = document.title;
@@ -15,12 +16,31 @@ const MAX_COIN_AUFLADUNG = 10;
 const bgmVolume = 0.5; // max 1
 const sfxVolume = 1; // max 13
 const maxSelectableBet = 10000; // all in zählt seperat
+const autoFullscreen = false;
 const keyConfig = { // space: " ", enter: "enter", etc
     spin: " ",
     allIn: "Enter",
     lowerBet: "a",
     increaseBet: "d",
 };
+
+// fullscreen
+if (autoFullscreen) {
+    document.documentElement.addEventListener("click", requestFullscreen);
+    document.documentElement.addEventListener("keydown", requestFullscreen);
+    document.documentElement.addEventListener("touchstart", requestFullscreen);
+}
+
+function requestFullscreen() {
+    document.documentElement.removeEventListener("click", requestFullscreen);
+    document.documentElement.removeEventListener("keydown", requestFullscreen);
+    document.documentElement.removeEventListener("touchstart", requestFullscreen);
+    try {
+        document.documentElement.requestFullscreen();
+    } catch (error) {
+        console.error("Error in requestFullscreen:", error);
+    }
+}
 
 const winVisualizeSvg = createOverlaySVG();
 
@@ -115,6 +135,7 @@ const config = {
     inverted: false, // true: reels spin from top to bottom; false: reels spin from bottom to top
     onSpinStart: () => {
         playSound(spinStartSfx, sfxVolume);
+        playSound(reelsSpinningSfx, sfxVolume);
         updateUI();
     },
     onSpinEnd: (winType, winAmount) => {

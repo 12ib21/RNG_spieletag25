@@ -35,8 +35,8 @@ export default class Symbol {
             "krauss_bike",
             "eska",
             "worbs",
+            "bohl",
             "breuer",
-            "joos",
             "knape",
             "kob",
             "krauss",
@@ -48,7 +48,7 @@ export default class Symbol {
             "rudolf",
             "deuschle",
             "bernhoerster",
-            "default",
+            "rng",
         ];
     }
 

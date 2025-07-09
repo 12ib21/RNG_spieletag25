@@ -13,7 +13,7 @@ const jackpotChance = 0.1 // %
 const initialBalance = 0; // €
 const initialBet = 0.1; // €
 
-const default_symbol = "default";
+const default_symbol = "rng";
 const winningPatterns = {
     basic: [
         [

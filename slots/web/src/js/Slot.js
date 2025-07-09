@@ -2,7 +2,7 @@ import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 import rng from "./trueRNG.js";
 
-const rtpCorrection = 0.40;
+const rtpCorrection = 0.37;
 const winFrequency = 40; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
@@ -10,7 +10,7 @@ const mediumWinChance = 35 // %
 const bigWinChance = 14.9 // %
 const jackpotChance = 0.1 // %
 
-const initialBalance = 0;
+const initialBalance = 0; // €
 const initialBet = 0.1; // €
 
 const default_symbol = "default";
@@ -25,6 +25,18 @@ const winningPatterns = {
             ["+"],
             ["+"],
             2
+        ],
+        [
+            ["+", "-"],
+            ["-", "+"],
+            ["+", "-"],
+            3
+        ],
+        [
+            ["-", "+"],
+            ["+", "-"],
+            ["-", "+"],
+            3
         ],
     ],
     medium: [
@@ -89,6 +101,16 @@ const winningPatternsSvg = {
             {x: 0, y: 0},
             {x: 0, y: 1},
             {x: 0, y: 2},
+        ],
+        [
+            {x: 0, y: 0},
+            {x: 1, y: 1},
+            {x: 0, y: 2},
+        ],
+        [
+            {x: 1, y: 0},
+            {x: 0, y: 1},
+            {x: 1, y: 2},
         ],
     ],
     medium: [
@@ -374,6 +396,7 @@ export default class Slot {
         matches.forEach(match => {
             winAmount += this.#calcWinAmountForPattern(match.payoutAmount, match.symbol) * this.bet;
         });
+        winAmount = Math.max(0, Math.round(winAmount * 100) / 100);
         if (overwrite_ths) {
             console.log(matches);
             console.log(`win amount: ${winAmount}`);

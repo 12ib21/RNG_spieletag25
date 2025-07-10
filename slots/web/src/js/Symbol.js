@@ -43,6 +43,7 @@ export default class Symbol {
             "kob",
             "krauss",
             "moehrle",
+            "hengge",
             "temmel",
             "volker",
             "woerle",

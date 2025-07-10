@@ -16,8 +16,8 @@ const MAX_COIN_AUFLADUNG = 100;
 const bgmVolume = 0.5; // max 1
 const sfxVolume = 1; // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
-const autoFullscreen = false;
-const preventDevTools = false;
+const autoFullscreen = true;
+const preventDevTools = true;
 const keyConfig = { // space: " ", enter: "enter", etc
     spin: " ",
     allIn: "Enter",
@@ -33,7 +33,9 @@ const gamepadConfig = {
     allIn: "B1",
     lowerBet: "A01",
     increaseBet: "A0-1",
-    killSwitch: "B2",
+    killSwitch: "B11",
+    autoplay: "A1-1",
+    autoplayOff: "A11",
 };
 const WEBSOCKET_TIMEOUT = 1500;
 
@@ -272,7 +274,7 @@ function allIn() {
     if (slot.bet === slot.currentBalance) {
         setBet(oldBet);
     } else {
-        setBet(slot.currentBalance);
+        setBet(Math.max(0, slot.currentBalance));
         const winDisplay = document.getElementById("winText");
         winDisplay.innerHTML = `All in!<br>${slot.bet.toFixed(2)}€`;
         winDisplay.style.animation = "pop 2s forwards";
@@ -375,15 +377,27 @@ function updateGamepadStatus() {
         if (gamepad) {
             checkGamepadTrigger(gamepad, gamepadConfig.spin, () => {
                 slot.spinButton.click();
+                startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.allIn, () => {
                 allIn();
+                startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.lowerBet, () => {
                 decreaseBet();
+                startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.increaseBet, () => {
                 increaseBet();
+                startBgmListener();
+            });
+            checkGamepadTrigger(gamepad, gamepadConfig.autoplay, () => {
+                slot.autoPlayCheckbox.checked = true;
+                startBgmListener();
+            });
+            checkGamepadTrigger(gamepad, gamepadConfig.autoplayOff, () => {
+                slot.autoPlayCheckbox.checked = false;
+                startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.killSwitch, () => {
                 console.log("killswitch an!");
@@ -411,14 +425,14 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, {intervalId});
+                    gamepadDebounceTimers.set(mapId, { intervalId });
                 }, 800);
-                gamepadDebounceTimers.set(mapId, {timeoutId});
+                gamepadDebounceTimers.set(mapId, { timeoutId });
             }
         } else {
             nfn?.();
             if (gamepadDebounceTimers.has(mapId)) {
-                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
+                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -437,13 +451,13 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, {intervalId});
+                    gamepadDebounceTimers.set(mapId, { intervalId });
                 }, 800);
-                gamepadDebounceTimers.set(mapId, {timeoutId});
+                gamepadDebounceTimers.set(mapId, { timeoutId });
             }
         } else {
             if (gamepadDebounceTimers.has(mapId)) {
-                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
+                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);

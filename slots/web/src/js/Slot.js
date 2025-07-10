@@ -10,7 +10,7 @@ const mediumWinChance = 35 // %
 const bigWinChance = 14.9 // %
 const jackpotChance = 0.1 // %
 
-const initialBalance = 0; // €
+const initialBalance = 1000; // €
 const initialBet = 0.1; // €
 
 const default_symbol = "rng";
@@ -93,69 +93,69 @@ const winningPatterns = {
 const winningPatternsSvg = {
     basic: [
         [
-            {x: 0, y: 0},
-            {x: 1, y: 0},
-            {x: 2, y: 0},
+            { x: 0, y: 0 },
+            { x: 1, y: 0 },
+            { x: 2, y: 0 },
         ],
         [
-            {x: 0, y: 0},
-            {x: 0, y: 1},
-            {x: 0, y: 2},
+            { x: 0, y: 0 },
+            { x: 0, y: 1 },
+            { x: 0, y: 2 },
         ],
         [
-            {x: 0, y: 0},
-            {x: 1, y: 1},
-            {x: 0, y: 2},
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+            { x: 0, y: 2 },
         ],
         [
-            {x: 1, y: 0},
-            {x: 0, y: 1},
-            {x: 1, y: 2},
+            { x: 1, y: 0 },
+            { x: 0, y: 1 },
+            { x: 1, y: 2 },
         ],
     ],
     medium: [
         [
-            {x: 0, y: 0},
-            {x: 1, y: 1},
-            {x: 2, y: 2},
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+            { x: 2, y: 2 },
         ],
         [
-            {x: 0, y: 2},
-            {x: 1, y: 1},
-            {x: 2, y: 0},
+            { x: 0, y: 2 },
+            { x: 1, y: 1 },
+            { x: 2, y: 0 },
         ],
         [
-            {x: 0, y: 1},
-            {x: 1, y: 0},
-            {x: 2, y: 1},
+            { x: 0, y: 1 },
+            { x: 1, y: 0 },
+            { x: 2, y: 1 },
         ],
         [
-            {x: 0, y: 0},
-            {x: 1, y: 1},
-            {x: 2, y: 0},
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+            { x: 2, y: 0 },
         ],
     ],
     big: [
         [
-            {x: 0, y: 0},
-            {x: 1, y: 0},
-            {x: 2, y: 0},
-            {x: 3, y: 0},
-            {x: 4, y: 0},
+            { x: 0, y: 0 },
+            { x: 1, y: 0 },
+            { x: 2, y: 0 },
+            { x: 3, y: 0 },
+            { x: 4, y: 0 },
         ],
         [
-            {x: 0, y: 0},
-            {x: 1, y: 1},
-            {x: 2, y: 1},
-            {x: 3, y: 1},
-            {x: 4, y: 2},
+            { x: 0, y: 0 },
+            { x: 1, y: 1 },
+            { x: 2, y: 1 },
+            { x: 3, y: 1 },
+            { x: 4, y: 2 },
         ],
         [
-            {x: 0, y: 2},
-            {x: 1, y: 1},
-            {x: 2, y: 1},
-            {x: 3, y: 1},
-            {x: 4, y: 0},
+            { x: 0, y: 2 },
+            { x: 1, y: 1 },
+            { x: 2, y: 1 },
+            { x: 3, y: 1 },
+            { x: 4, y: 0 },
         ],
     ],
     jackpot: [
@@ -226,7 +226,7 @@ export default class Slot {
 
     spin() {
         if (this.isSpinning) return;
-        if (this.currentBalance < this.bet && this.freeToPlay === false) {
+        if (this.currentBalance < Math.abs(this.bet) && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
             return;
         }
@@ -396,7 +396,7 @@ export default class Slot {
         matches.forEach(match => {
             winAmount += this.#calcWinAmountForPattern(match.payoutAmount, match.symbol) * this.bet;
         });
-        winAmount = Math.max(0, Math.round(winAmount * 100) / 100);
+        winAmount = Math.round(winAmount * 100) / 100;
         if (overwrite_ths) {
             console.log(matches);
             console.log(`win amount: ${winAmount}`);
@@ -439,8 +439,8 @@ export default class Slot {
         setTimeout(() => {
             // gewinnmenge anzeigen
             const winDisplay = document.getElementById("winText");
-            const winTypeText = `${this.#capitalizeFirstLetter(this.biggestWinType)} Win!`;
-            winDisplay.innerHTML = `${winTypeText}<br>+${winAmount}€`;
+            const winTypeText = `${this.#capitalizeFirstLetter(this.biggestWinType)} ${winAmount > 0 ? "Win" : "Loss"}!`;
+            winDisplay.innerHTML = `${winAmount > 0 ? "" : "Waltercombo!<br>"}${winTypeText}<br>${winAmount > 0 ? "+" : ""}${winAmount}€`;
             winDisplay.style.animation = "pop 2s forwards";
             setTimeout(() => {
                 winDisplay.style.animation = "";

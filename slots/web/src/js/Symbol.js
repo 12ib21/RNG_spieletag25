@@ -7,6 +7,7 @@ const rewardLegendary = 5;
 const chanceLegendary = 10;
 const chanceBonus = 20;
 const chanceBasic = 70;
+const WALTER_MULTIPLIER = -5;
 
 const numLegendary = 2;
 const numBonus = 2;
@@ -44,9 +45,10 @@ export default class Symbol {
             "temmel",
             "volker",
             "woerle",
+            "walter",
             "mueller_deuschle",
             "rudolf",
-            "deuschle",
+            "gross",
             "bernhoerster",
             "rng",
         ];
@@ -77,6 +79,7 @@ export default class Symbol {
     static getMultiplier(symbol) {
         const symbolIndex = this.symbols.findIndex(p => p === symbol);
         if (symbolIndex === -1) return 0;
+        if (this.symbols[symbolIndex] === "walter") return WALTER_MULTIPLIER;
         if (symbolIndex < numLegendary) return rewardLegendary;
         if (symbolIndex < numLegendary + numBonus) return rewardBonus;
         return rewardBasic

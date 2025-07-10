@@ -39,6 +39,7 @@ const gamepadConfig = {
 };
 const WEBSOCKET_TIMEOUT = 1500;
 let killswitch = false;
+let lastCoinAufladung = Date.now();
 const ksJson = JSON.parse(window.localStorage.getItem("ks"));
 if (ksJson !== null) {
     window.localStorage.removeItem("ks");
@@ -245,13 +246,16 @@ function initWebSocket() {
     socket.onmessage = function (event) {
         socketLastReceived = Date.now();
         if (event.data.toString().startsWith("cns:")) {
-            slot.freeToPlay = false;
-            let cns = parseFloat(event.data.slice(4));
-            if (cns > MAX_COIN_AUFLADUNG) {
-                console.error("Coin amount exceeded!");
-            } else {
-                playSound(coinInsertSfx, sfxVolume);
-                incrementBal(slot.currentBalance, cns);
+            if (Date.now() - lastCoinAufladung > 100) {
+                lastCoinAufladung = Date.now();
+                slot.freeToPlay = false;
+                let cns = parseFloat(event.data.slice(4));
+                if (cns > MAX_COIN_AUFLADUNG) {
+                    console.error("Coin amount exceeded!");
+                } else {
+                    playSound(coinInsertSfx, sfxVolume);
+                    incrementBal(slot.currentBalance, cns);
+                }
             }
         }
         if (event.data.toString().startsWith("ftpon")) {

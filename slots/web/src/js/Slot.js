@@ -93,69 +93,69 @@ const winningPatterns = {
 const winningPatternsSvg = {
     basic: [
         [
-            { x: 0, y: 0 },
-            { x: 1, y: 0 },
-            { x: 2, y: 0 },
+            {x: 0, y: 0},
+            {x: 1, y: 0},
+            {x: 2, y: 0},
         ],
         [
-            { x: 0, y: 0 },
-            { x: 0, y: 1 },
-            { x: 0, y: 2 },
+            {x: 0, y: 0},
+            {x: 0, y: 1},
+            {x: 0, y: 2},
         ],
         [
-            { x: 0, y: 0 },
-            { x: 1, y: 1 },
-            { x: 0, y: 2 },
+            {x: 0, y: 0},
+            {x: 1, y: 1},
+            {x: 0, y: 2},
         ],
         [
-            { x: 1, y: 0 },
-            { x: 0, y: 1 },
-            { x: 1, y: 2 },
+            {x: 1, y: 0},
+            {x: 0, y: 1},
+            {x: 1, y: 2},
         ],
     ],
     medium: [
         [
-            { x: 0, y: 0 },
-            { x: 1, y: 1 },
-            { x: 2, y: 2 },
+            {x: 0, y: 0},
+            {x: 1, y: 1},
+            {x: 2, y: 2},
         ],
         [
-            { x: 0, y: 2 },
-            { x: 1, y: 1 },
-            { x: 2, y: 0 },
+            {x: 0, y: 2},
+            {x: 1, y: 1},
+            {x: 2, y: 0},
         ],
         [
-            { x: 0, y: 1 },
-            { x: 1, y: 0 },
-            { x: 2, y: 1 },
+            {x: 0, y: 1},
+            {x: 1, y: 0},
+            {x: 2, y: 1},
         ],
         [
-            { x: 0, y: 0 },
-            { x: 1, y: 1 },
-            { x: 2, y: 0 },
+            {x: 0, y: 0},
+            {x: 1, y: 1},
+            {x: 2, y: 0},
         ],
     ],
     big: [
         [
-            { x: 0, y: 0 },
-            { x: 1, y: 0 },
-            { x: 2, y: 0 },
-            { x: 3, y: 0 },
-            { x: 4, y: 0 },
+            {x: 0, y: 0},
+            {x: 1, y: 0},
+            {x: 2, y: 0},
+            {x: 3, y: 0},
+            {x: 4, y: 0},
         ],
         [
-            { x: 0, y: 0 },
-            { x: 1, y: 1 },
-            { x: 2, y: 1 },
-            { x: 3, y: 1 },
-            { x: 4, y: 2 },
+            {x: 0, y: 0},
+            {x: 1, y: 1},
+            {x: 2, y: 1},
+            {x: 3, y: 1},
+            {x: 4, y: 2},
         ],
         [
-            { x: 0, y: 2 },
-            { x: 1, y: 1 },
-            { x: 2, y: 1 },
-            { x: 3, y: 1 },
-            { x: 4, y: 0 },
+            {x: 0, y: 2},
+            {x: 1, y: 1},
+            {x: 2, y: 1},
+            {x: 3, y: 1},
+            {x: 4, y: 0},
         ],
     ],
     jackpot: [
@@ -440,7 +440,7 @@ export default class Slot {
             // gewinnmenge anzeigen
             const winDisplay = document.getElementById("winText");
             const winTypeText = `${this.#capitalizeFirstLetter(this.biggestWinType)} ${winAmount > 0 ? "Win" : "Loss"}!`;
-            winDisplay.innerHTML = `${winAmount > 0 ? "" : "Waltercombo!<br>"}${winTypeText}<br>${winAmount > 0 ? "+" : ""}${winAmount}€`;
+            winDisplay.innerHTML = `${winAmount > 0 ? "" : `${window.killswitch ? "Schade" : "Waltercombo"}!<br>`}${winTypeText}<br>${winAmount > 0 ? "+" : ""}${winAmount}€`;
             winDisplay.style.animation = "pop 2s forwards";
             setTimeout(() => {
                 winDisplay.style.animation = "";

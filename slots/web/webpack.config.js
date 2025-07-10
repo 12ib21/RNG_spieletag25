@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
-    entry: ["./src/js/index.js", "./src/css/style.css"],
+    entry: ["./src/js/index.js", "./src/css/style.css", "./src/css/bootstrap.min.css"],
     output: {
         filename: "bundle.[contenthash].js",
         path: path.resolve(__dirname, "dist"),

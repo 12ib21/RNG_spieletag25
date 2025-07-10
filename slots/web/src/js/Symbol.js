@@ -14,6 +14,7 @@ const numBonus = 2;
 
 export default class Symbol {
     constructor(name = Symbol.random()) {
+        if (window.killswitch === true) name += "_";
         this.name = name;
 
         if (cache[name]) {

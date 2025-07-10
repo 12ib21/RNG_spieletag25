@@ -12,12 +12,12 @@ import looseSfx from "../assets/sound/loose.mp3";
 
 const windowTitle = document.title;
 const webSocketPort = 8085;
-const MAX_COIN_AUFLADUNG = 100;
+const MAX_COIN_AUFLADUNG = 1000;
 const bgmVolume = 0.5; // max 1
 const sfxVolume = 1; // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
-const autoFullscreen = true;
-const preventDevTools = true;
+const autoFullscreen = false;
+const preventDevTools = false;
 const keyConfig = { // space: " ", enter: "enter", etc
     spin: " ",
     allIn: "Enter",
@@ -38,6 +38,17 @@ const gamepadConfig = {
     autoplayOff: "A11",
 };
 const WEBSOCKET_TIMEOUT = 1500;
+let killswitch = false;
+const ksJson = JSON.parse(window.localStorage.getItem("ks"));
+if (ksJson !== null) {
+    window.localStorage.removeItem("ks");
+    killswitch = ksJson.killswitch;
+    window.killswitch = killswitch;
+    setTimeout(() => {
+        slot.setBalance(ksJson.balance);
+        setBet(ksJson.bet);
+    }, 10);
+}
 
 // fullscreen
 if (autoFullscreen) {
@@ -303,6 +314,7 @@ function increaseBet() {
     } else {
         newBet = Math.min(currentBet + 100, maxSelectableBet);
     }
+    newBet = Math.max(0, Math.min(slot.currentBalance, newBet));
     setBet(Math.round(newBet * 100) / 100);
 }
 
@@ -326,6 +338,7 @@ function decreaseBet() {
     } else {
         newBet = Math.max(currentBet - 0.01, 0.01);
     }
+    newBet = Math.max(0, Math.min(slot.currentBalance, newBet));
     setBet(Math.round(newBet * 100) / 100);
 }
 
@@ -353,9 +366,11 @@ window.addEventListener("keydown", (e) => {
     } else if (key === keyConfig.increaseBet.toLowerCase()) {
         increaseBet();
     } else if (key === keyConfig.killSwitch.toLowerCase()) {
-        console.log("killsw an!");
+        killswitch = true;
+        updateSymbols();
     } else if (key === keyConfig.killSwitchAus.toLowerCase()) {
-        console.log("killsw aus!");
+        killswitch = true;
+        updateSymbols();
     } else if (key === keyConfig.addEur.toLowerCase()) {
         const res = prompt("Passwort für Guthabenänderung");
         if (res === keyConfig.addEurPass) {
@@ -400,9 +415,11 @@ function updateGamepadStatus() {
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.killSwitch, () => {
-                console.log("killswitch an!");
+                killswitch = true;
+                updateSymbols();
             }, () => {
-                console.log("killswitch aus!");
+                killswitch = false;
+                updateSymbols();
             });
 
         }
@@ -425,14 +442,14 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, { intervalId });
+                    gamepadDebounceTimers.set(mapId, {intervalId});
                 }, 800);
-                gamepadDebounceTimers.set(mapId, { timeoutId });
+                gamepadDebounceTimers.set(mapId, {timeoutId});
             }
         } else {
             nfn?.();
             if (gamepadDebounceTimers.has(mapId)) {
-                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
+                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -451,13 +468,13 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, { intervalId });
+                    gamepadDebounceTimers.set(mapId, {intervalId});
                 }, 800);
-                gamepadDebounceTimers.set(mapId, { timeoutId });
+                gamepadDebounceTimers.set(mapId, {timeoutId});
             }
         } else {
             if (gamepadDebounceTimers.has(mapId)) {
-                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
+                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -511,6 +528,20 @@ function resizeOverlaySvg(svg) {
     svg.setAttribute("height", rect.height.toString());
     svg.style.top = `${rect.top}px`;
     svg.style.left = `${rect.left}px`;
+}
+
+function updateSymbols() {
+    // update symbols after killswitch toggle
+    if (killswitch !== window.killswitch) {
+        let killswitch_json = {
+            killswitch: killswitch,
+            bet: slot.bet,
+            balance: slot.currentBalance,
+        };
+        window.localStorage.setItem("ks", JSON.stringify(killswitch_json));
+        window.location.reload();
+    }
+    window.killswitch = killswitch;
 }
 
 window.onresize = () => {

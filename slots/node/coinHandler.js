@@ -7,6 +7,11 @@ const clients = [
         name: "1",
         ip: "::1", // localhost
         muenzomat: true,
+    },
+     {
+        name: "1",
+        ip: "192.168.162.116",
+        muenzomat: false,
     }
 ];
 

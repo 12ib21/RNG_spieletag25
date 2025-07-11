@@ -7,7 +7,7 @@ const rewardLegendary = 5;
 const chanceLegendary = 10;
 const chanceBonus = 20;
 const chanceBasic = 70;
-const WALTER_MULTIPLIER = -5;
+const WALTER_MULTIPLIER = -0.5;
 
 const numLegendary = 2;
 const numBonus = 2;
@@ -33,17 +33,17 @@ export default class Symbol {
 
     static get symbols() {
         return [
-            "boneberg",
+            "hengge",
             "krauss_bike",
             "eska",
             "worbs",
             "bohl",
+            "boneberg",
             "breuer",
             "knape",
             "kob",
             "krauss",
             "moehrle",
-            "hengge",
             "temmel",
             "volker",
             "woerle",

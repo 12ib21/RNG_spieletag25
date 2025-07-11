@@ -440,7 +440,7 @@ export default class Slot {
             // gewinnmenge anzeigen
             const winDisplay = document.getElementById("winText");
             const winTypeText = `${this.#capitalizeFirstLetter(this.biggestWinType)} ${winAmount > 0 ? "Win" : "Loss"}!`;
-            winDisplay.innerHTML = `${winAmount > 0 ? "" : `${window.killswitch ? "Schade" : "Waltercombo"}!<br>`}${winTypeText}<br>${winAmount > 0 ? "+" : ""}${winAmount}€`;
+            winDisplay.innerHTML = `${winAmount >= 0 ? "" : `${window.killswitch ? "Schade" : "Waltercombo"}!<br>`}${winTypeText}<br>${winAmount >= 0 ? "+" : ""}${winAmount}€`;
             winDisplay.style.animation = "pop 2s forwards";
             setTimeout(() => {
                 winDisplay.style.animation = "";
@@ -561,7 +561,9 @@ export default class Slot {
                 this.isSpinning = false;
                 this.spinButton.disabled = false;
                 if (this.autoPlayCheckbox.checked) {
-                    return window.setTimeout(() => this.spin(), winAmount === 0 ? 250 : 1000);
+                    return window.setTimeout(() => {
+                        if (this.autoPlayCheckbox.checked === true) this.spin();
+                    }, winAmount === 0 ? 0 : 1000);
                 }
             }, 2500);
         }, Math.max(0, time / 2 - 2000));

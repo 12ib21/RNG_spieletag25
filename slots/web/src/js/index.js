@@ -265,8 +265,7 @@ function initWebSocket() {
                     incrementBal(slot.currentBalance, cns);
                 }
             }
-        }
-        if (event.data.toString().startsWith("{")) {
+        } else if (event.data.toString().startsWith("{")) {
             const tJson = JSON.parse(event.data.toString());
             console.log(tJson);
             slot.freeToPlay = tJson.ftp === true;
@@ -276,6 +275,18 @@ function initWebSocket() {
             if (musicAllowed === false && bgmStarted === true) {
                 sourceNode.stop();
             }
+        } else if (event.data.toString().toLowerCase() === "r") { // reload
+            if (event.data.toString() === "r") {
+                let killswitch_json = {
+                    killswitch: killswitch,
+                    bet: slot.bet,
+                    balance: slot.currentBalance,
+                };
+                if (slot.isSpinning === true)
+                    killswitch_json.balance += killswitch_json.bet;
+                window.localStorage.setItem("ks", JSON.stringify(killswitch_json));
+            }
+            window.location.reload();
         }
         if (!slot.isSpinning) updateUI();
     };

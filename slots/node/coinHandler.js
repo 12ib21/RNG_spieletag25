@@ -100,7 +100,7 @@ function rlq() {
     rl.question('', (input) => {
         if (input) {
             if (input === "h") {
-                console.log("Für alle Clients:\nf -> FTP an\nd -> FTP aus\nu -> umsatzmodus\ns -> suchtmodus\nk -> killswitch an\nl -> killswitch aus\n");
+                console.log("Für alle Clients:\nr -> hot reload\nR -> reload (geld weg)\nf -> FTP an\nd -> FTP aus\nu -> umsatzmodus\ns -> suchtmodus\nk -> killswitch an\nl -> killswitch aus\n");
             } else if (input === "f" || input === "d") {
                 clients.forEach((client) => {
                     client.infos.ftp = input === "f";
@@ -113,7 +113,8 @@ function rlq() {
                 clients.forEach((client) => {
                     client.infos.killswitch = input === "k";
                 });
-            }
+            } else if (input.toLowerCase() === "r")
+                    broadcast(input);
             broadcast();
         }
         rlq();

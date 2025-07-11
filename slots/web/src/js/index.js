@@ -39,11 +39,14 @@ const gamepadConfig = {
 };
 const WEBSOCKET_TIMEOUT = 1500;
 let killswitch = false;
+let killswitch_client = false;
+let killswitch_server = false;
 let lastCoinAufladung = Date.now();
 const ksJson = JSON.parse(window.localStorage.getItem("ks"));
 if (ksJson !== null) {
     window.localStorage.removeItem("ks");
     killswitch = ksJson.killswitch;
+    killswitch_server = killswitch; // damits nicht reloaded
     window.killswitch = killswitch;
     setTimeout(() => {
         slot.setBalance(ksJson.balance);
@@ -141,7 +144,7 @@ function startBgmListener() {
         startBgm(audioBufferStart);
     else {
         const int = setInterval(() => {
-            if (audioLoaded) {
+            if (audioLoaded && !bgmStarted) {
                 startBgm(audioBufferStart);
                 clearInterval(int);
             }
@@ -258,17 +261,12 @@ function initWebSocket() {
                 }
             }
         }
-        if (event.data.toString().startsWith("ftpon")) {
-            slot.freeToPlay = true;
-        }
-        if (event.data.toString().startsWith("ftpoff")) {
-            slot.freeToPlay = false;
-        }
-        if (event.data.toString().startsWith("rtpn")) {
-            slot.externalRtpCorrection = 1;
-        }
-        if (event.data.toString().startsWith("rtps")) {
-            slot.externalRtpCorrection = 0.5;
+        if (event.data.toString().startsWith("{")) {
+            const tJson = JSON.parse(event.data.toString());
+            console.log(tJson);
+            slot.freeToPlay = tJson.ftp === true;
+            slot.externalRtpCorrection = Math.max(0, tJson.rtp);
+            killswitch_server = tJson.killswitch === true;
         }
         if (!slot.isSpinning) updateUI();
     };
@@ -370,10 +368,10 @@ window.addEventListener("keydown", (e) => {
     } else if (key === keyConfig.increaseBet.toLowerCase()) {
         increaseBet();
     } else if (key === keyConfig.killSwitch.toLowerCase()) {
-        killswitch = true;
+        killswitch_client = true;
         updateSymbols();
     } else if (key === keyConfig.killSwitchAus.toLowerCase()) {
-        killswitch = true;
+        killswitch_client = false;
         updateSymbols();
     } else if (key === keyConfig.addEur.toLowerCase()) {
         const res = prompt("Passwort für Guthabenänderung");
@@ -419,10 +417,10 @@ function updateGamepadStatus() {
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.killSwitch, () => {
-                killswitch = true;
+                killswitch_client = true;
                 updateSymbols();
             }, () => {
-                killswitch = false;
+                killswitch_client = false;
                 updateSymbols();
             });
 
@@ -536,12 +534,16 @@ function resizeOverlaySvg(svg) {
 
 function updateSymbols() {
     // update symbols after killswitch toggle
+    if (killswitch_server === true) killswitch = true;
+    else killswitch = killswitch_client;
     if (killswitch !== window.killswitch) {
         let killswitch_json = {
             killswitch: killswitch,
             bet: slot.bet,
             balance: slot.currentBalance,
         };
+        if (slot.isSpinning === true)
+            killswitch_json.balance += killswitch_json.bet;
         window.localStorage.setItem("ks", JSON.stringify(killswitch_json));
         window.location.reload();
     }

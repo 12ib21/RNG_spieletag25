@@ -1,5 +1,5 @@
 const readline = require('readline');
-const {SerialPort} = require("serialport");
+const { SerialPort } = require("serialport");
 const WebSocket = require('ws');
 
 const clients = [
@@ -8,9 +8,14 @@ const clients = [
         ip: "::1", // localhost
         muenzomat: true,
     },
-     {
-        name: "1",
+    {
+        name: "rot",
         ip: "192.168.162.116",
+        muenzomat: false,
+    },
+    {
+        name: "gruen",
+        ip: "192.168.90.0",
         muenzomat: false,
     }
 ];
@@ -91,7 +96,7 @@ function _broadcast(msg) {
     });
 }
 
-const wss = new WebSocket.Server({port: webSocketPort});
+const wss = new WebSocket.Server({ port: webSocketPort });
 
 wss.on('connection', (ws, req) => {
     const ip = req.socket.remoteAddress.replace("::ffff:", "");

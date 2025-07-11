@@ -63,11 +63,14 @@ if (autoFullscreen) {
 }
 
 function requestFullscreen() {
-    document.documentElement.removeEventListener("click", requestFullscreen);
-    document.documentElement.removeEventListener("keydown", requestFullscreen);
-    document.documentElement.removeEventListener("touchstart", requestFullscreen);
     try {
-        document.documentElement.requestFullscreen();
+        document.documentElement.requestFullscreen().then(() => {
+            document.documentElement.removeEventListener("click", requestFullscreen);
+            document.documentElement.removeEventListener("keydown", requestFullscreen);
+            document.documentElement.removeEventListener("touchstart", requestFullscreen);
+        }).catch(e => {
+            console.warn("Error while requestFullscreen:", e);
+        });
     } catch (error) {
         console.error("Error in requestFullscreen:", error);
     }

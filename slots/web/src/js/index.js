@@ -41,6 +41,7 @@ const WEBSOCKET_TIMEOUT = 1500;
 let killswitch = false;
 let killswitch_client = false;
 let killswitch_server = false;
+let musicAllowed = true;
 let lastCoinAufladung = Date.now();
 const ksJson = JSON.parse(window.localStorage.getItem("ks"));
 if (ksJson !== null) {
@@ -114,7 +115,7 @@ function loadBuffer(url) {
 loadAudio();
 
 function startBgm(buffer) {
-    if (!audioLoaded) return;
+    if (audioLoaded === false || musicAllowed === false) return;
     if (buffer) {
         const gainNode = audioContext.createGain();
         gainNode.gain.setValueAtTime(bgmVolume, 0);
@@ -138,17 +139,18 @@ document.addEventListener("keydown", startBgmListener);
 document.addEventListener("touchstart", startBgmListener);
 
 function startBgmListener() {
-    if (bgmStarted) return;
+    if (bgmStarted === true || musicAllowed === false) return;
     bgmStarted = true;
-    if (audioLoaded)
+    if (audioLoaded === true)
         startBgm(audioBufferStart);
     else {
         const int = setInterval(() => {
-            if (audioLoaded && !bgmStarted) {
-                startBgm(audioBufferStart);
+            if (audioLoaded === true) {
+                if (musicAllowed === true)
+                    startBgm(audioBufferStart);
                 clearInterval(int);
             }
-        }, 250);
+        }, 100);
     }
 }
 
@@ -267,6 +269,10 @@ function initWebSocket() {
             slot.freeToPlay = tJson.ftp === true;
             slot.externalRtpCorrection = Math.max(0, tJson.rtp);
             killswitch_server = tJson.killswitch === true;
+            musicAllowed = tJson.musik === true;
+            if (musicAllowed === false && bgmStarted === true) {
+                sourceNode.stop();
+            }
         }
         if (!slot.isSpinning) updateUI();
     };

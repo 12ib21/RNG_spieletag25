@@ -12,7 +12,7 @@ import looseSfx from "../assets/sound/loose.mp3";
 
 const windowTitle = document.title;
 const webSocketPort = 8085;
-const MAX_COIN_AUFLADUNG = 1000;
+const MAX_COIN_AUFLADUNG = 1000000;
 const bgmVolume = 0.5; // max 1
 const sfxVolume = 1; // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
@@ -270,6 +270,7 @@ function initWebSocket() {
             if (musicAllowed === false && bgmStarted === true) {
                 sourceNode.stop();
             }
+            updateSymbols();
         } else if (event.data.toString().toLowerCase() === "r") { // reload
             if (event.data.toString() === "r") {
                 let killswitch_json = {

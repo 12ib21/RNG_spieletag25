@@ -1,5 +1,8 @@
 const readline = require('readline');
 const {SerialPort} = require("serialport");
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const WebSocket = require('ws');
 
 const defaultRtp = 1;
@@ -8,6 +11,9 @@ const defaultKillswitch = false;
 const gewinnmodusRtp = 0.5;
 
 const webSocketPort = 8085
+const managementPort = 5560;
+const webSocketManagementPort = 5561;
+const managementDir = path.join(__dirname, "management");
 const port = new SerialPort({
     path: 'COM9',
     baudRate: 115200
@@ -18,8 +24,9 @@ const clients = [
         name: "1",
         ip: "::1", // localhost
         muenzomat: true,
-        musik: true,
-        infos: {},
+        infos: {
+            musik: true,
+        },
     },
     {
         name: "2",
@@ -30,7 +37,7 @@ const clients = [
         },
     },
     {
-        name: "rot",
+        name: "Rot",
         ip: "192.168.162.116",
         muenzomat: false,
         infos: {
@@ -38,7 +45,7 @@ const clients = [
         },
     },
     {
-        name: "gruen",
+        name: "Gruen",
         ip: "192.168.90.0",
         muenzomat: false,
         infos: {
@@ -76,12 +83,14 @@ port.on('data', (data) => {
     }
     if (data.toString().startsWith('ftp')) {
         clients.forEach((client) => {
-            client.infos.ftp = data.toString() === "ftpoff" ? false : data.toString() === "ftpon";
+            if (client.muenzomat)
+                client.infos.ftp = data.toString() === "ftpoff" ? false : data.toString() === "ftpon";
         });
     }
     if (data.toString().startsWith('rtp')) {
         clients.forEach((client) => {
-            client.infos.rtp = data.toString() === "rtpn" ? 1 : data.toString() === "rtps" ? gewinnmodusRtp : 1;
+            if (client.muenzomat)
+                client.infos.rtp = data.toString() === "rtpn" ? 1 : data.toString() === "rtps" ? gewinnmodusRtp : 1;
         });
     }
     _broadcast();
@@ -114,7 +123,7 @@ function rlq() {
                     client.infos.killswitch = input === "k";
                 });
             } else if (input.toLowerCase() === "r")
-                    broadcast(input);
+                broadcast(input);
             broadcast();
         }
         rlq();
@@ -125,24 +134,31 @@ rlq();
 
 function broadcast(msg) {
     clients.forEach(client => {
-        if (client.ws !== undefined)
-            if (client.ws.readyState === WebSocket.OPEN) {
-                if (msg !== "" && msg !== undefined)
-                    client.ws.send(msg);
-                client.ws.send(JSON.stringify(client.infos));
-            }
+        if (client.ws !== undefined && client.ws.readyState === WebSocket.OPEN) {
+            if (msg !== "" && msg !== undefined)
+                client.ws.send(msg);
+            client.ws.send(JSON.stringify(client.infos));
+        }
+    });
+}
+
+function broadcastManagement() {
+    const clientsCp = clients
+        .filter(client => client.ws && client.ws.readyState === WebSocket.OPEN) // Filter clients
+        .map(({ws, ...rest}) => rest);
+    managementClients.forEach(client => {
+        if (client.ws !== undefined && client.ws.readyState === WebSocket.OPEN)
+            client.ws.send(JSON.stringify(clientsCp));
     });
 }
 
 function _broadcast(msg) {
     clients.forEach(client => {
-        if (client.muenzomat === true)
-            if (client.ws !== undefined)
-                if (client.ws.readyState === WebSocket.OPEN) {
-                    if (msg !== "" && msg !== undefined)
-                        client.ws.send(msg);
-                    client.ws.send(JSON.stringify(client.infos));
-                }
+        if (client.muenzomat === true && client.ws !== undefined && client.ws.readyState === WebSocket.OPEN) {
+            if (msg !== "" && msg !== undefined)
+                client.ws.send(msg);
+            client.ws.send(JSON.stringify(client.infos));
+        }
     });
 }
 
@@ -164,6 +180,7 @@ wss.on('connection', (ws, req) => {
     ws.on('close', () => {
         ws.close();
     });
+    broadcastManagement();
 });
 
 function sendClientInfos(client) {
@@ -172,6 +189,111 @@ function sendClientInfos(client) {
         client.ws.send(JSON.stringify(client.infos));
     }
 }
+
+const webserver = http.createServer((req, res) => {
+    let filePath = path.join(managementDir, req.url === '/' ? 'index.html' : req.url);
+    const extname = String(path.extname(filePath)).toLowerCase();
+    const mimeTypes = {
+        '.html': 'text/html',
+        '.js': 'text/javascript',
+        '.css': 'text/css',
+        '.json': 'application/json',
+        '.png': 'image/png',
+        '.jpg': 'image/jpg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.wav': 'audio/wav',
+        '.mp4': 'video/mp4',
+        '.woff': 'font/woff',
+        '.woff2': 'font/woff2',
+        '.ttf': 'font/ttf',
+        '.eot': 'font/eot',
+        '.otf': 'font/otf',
+        '.wasm': 'application/wasm'
+    };
+
+    const contentType = mimeTypes[extname] || 'application/octet-stream';
+
+    fs.readFile(filePath, (error, content) => {
+        if (error) {
+            if (error.code === 'ENOENT') {
+                res.writeHead(404);
+                res.end('404 Not Found');
+            } else {
+                res.writeHead(500);
+                res.end('500 Internal Server Error');
+            }
+        } else {
+            res.writeHead(200, {'Content-Type': contentType});
+            res.end(content, 'utf-8');
+        }
+    });
+});
+
+const wss_management = new WebSocket.Server({port: webSocketManagementPort});
+let managementClients = [];
+wss_management.on('connection', (ws, req) => {
+    const ip = req.socket.remoteAddress.replace("::ffff:", "");
+    const i = managementClients.findIndex(managementClient => managementClient.ip === ip);
+    if (i !== -1) managementClients.slice(i, 1); // durch neue verbindung ersetzen
+    managementClients.push({ip: ip, ws: ws});
+    const clientsCp = clients
+        .filter(client => client.ws && client.ws.readyState === WebSocket.OPEN) // Filter clients
+        .map(({ws, ...rest}) => rest);
+    ws.send(JSON.stringify(clientsCp));
+
+    ws.on('message', (msg) => {
+        msg = msg.toString();
+        if (msg.startsWith("{")) {
+            const recvJson = JSON.parse(msg);
+            if (recvJson !== null && recvJson !== undefined) {
+                if (recvJson.client !== undefined) {
+                    const client = clients.find(client => client.name === recvJson.client);
+                    if (client !== null && client !== undefined) {
+                        if (recvJson.musik !== undefined)
+                            client.infos.musik = recvJson.musik === true;
+                        if (recvJson.ftp !== undefined)
+                            client.infos.ftp = recvJson.ftp === true
+                        if (recvJson.rtpmode !== undefined)
+                            client.infos.rtp = recvJson.rtpmode === true ? 1 : gewinnmodusRtp;
+                        if (recvJson.ksw !== undefined)
+                            client.infos.killswitch = recvJson.ksw === true;
+                        if (recvJson.cns !== undefined && client.ws !== undefined && client.ws.readyState === WebSocket.OPEN)
+                            client.ws.send(`cns:${parseFloat(parseFloat(recvJson.cns).toFixed(2))}`);
+                        if (recvJson.reload !== undefined) {
+                            let hard = false;
+                            if (recvJson.hardReload !== undefined) hard = recvJson.hardReload === true;
+                            if (client.ws !== undefined && client.ws.readyState === WebSocket.OPEN)
+                                client.ws.send(hard === true ? "R" : "r");
+                        }
+
+                        if (client.ws !== undefined && client.ws.readyState === WebSocket.OPEN)
+                            client.ws.send(JSON.stringify(client.infos));
+                    }
+                } else {
+                    if (recvJson.masterKsw !== undefined) {
+                        clients.forEach((client) => {
+                            client.infos.killswitch = recvJson.masterKsw === true;
+                        });
+                        broadcast();
+                    }
+                }
+            }
+        }
+        broadcastManagement();
+        broadcast();
+    });
+
+    ws.on('close', () => {
+        ws.close();
+    });
+});
+
+setInterval(broadcastManagement, 5000);
+
+webserver.listen(managementPort, () => {
+    console.log(`Server is running on http://localhost:${managementPort}`);
+});
 
 console.log(`WebSocket server is running on ws://localhost:${webSocketPort}`);
 

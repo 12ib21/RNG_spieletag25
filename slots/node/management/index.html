@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #status {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #clientGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .clientBox {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+            p {
+                margin-block-start: 0.75em;
+                margin-block-end: 0.75em;
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="status">Connecting...</div>
+<div class="overlay" id="overlay">Connecting...</div>
+<div id="clientGrid"></div>
+
+<script>
+    const statusElement = document.getElementById('status');
+    const clientGrid = document.getElementById('clientGrid');
+    const overlay = document.getElementById('overlay');
+
+    const ws = new WebSocket(`ws://${window.location.hostname}:5561`); // Replace with your WebSocket URL
+
+    ws.onopen = () => {
+        statusElement.textContent = 'Connected';
+        overlay.style.display = 'none';
+    };
+
+    ws.onclose = () => {
+        statusElement.textContent = 'Disconnected';
+        overlay.style.display = 'flex';
+    };
+
+    ws.onmessage = (event) => {
+        const clients = JSON.parse(event.data);
+        updateClientGrid(clients);
+    };
+
+    function updateClientGrid(clients) {
+        clientGrid.innerHTML = ''; // Clear existing clients
+        const mainBox = document.createElement('div');
+        mainBox.className = 'clientBox';
+        mainBox.innerHTML = `
+            <h2>Main</h2>
+            <p><b>KSW:</b> <button onclick="masterKsw(true)"><span style="color: red">An</span></button>&nbsp;&nbsp;<button onclick="masterKsw(false)"><span style="color: limegreen">Aus</span></button></p>
+        `;
+        clientGrid.append(mainBox);
+
+        clients.forEach(client => {
+            const clientBox = document.createElement('div');
+            clientBox.className = 'clientBox';
+            clientBox.innerHTML = `
+                <h2>${client.name}</h2>
+                <p><b>IP:</b> <i>${client.ip}</i></p>
+                <p><b>Musik:</b> <i>${client.infos.musik ? '<span style="color:limegreen;">An</span>' : '<span style="color:red;">Aus</span>'}</i>&nbsp;&nbsp;<button onclick="toggleClientMusik('${client.name}', ${client.infos.musik})">${!client.infos.musik ? '<span style="color:limegreen;">An</span>' : '<span style="color:red;">Aus</span>'}</button></p>
+                <p><b>FTP:</b> <i>${client.infos.ftp ? '<span style="color:limegreen;">An</span>' : '<span style="color:red;">Aus</span>'}</i>&nbsp;&nbsp;<button onclick="toggleClientFtp('${client.name}', ${client.infos.ftp})">${!client.infos.ftp ? '<span style="color:limegreen;">An</span>' : '<span style="color:red;">Aus</span>'}</button></p>
+                <p><b>Modus:</b> <i>${client.infos.rtp < 1 ? "Ums" : "Su"}(<span style="color:${client.infos.rtp < 1 ? "limegreen" : "orange"};">${client.infos.rtp.toFixed(1)}x</span>)</i>&nbsp;&nbsp;<button onclick="toggleClientRtp('${client.name}', ${client.infos.rtp})">${client.infos.rtp < 1 ? '<span style="color:orange;">Su</span>' : '<span style="color:limegreen;">Ums</span>'}</button></p>
+                <p><b>KSW:</b> <i>${client.infos.killswitch ? '<span style="color:red;">An</span>' : '<span style="color:limegreen;">Aus</span>'}</i>&nbsp;&nbsp;<button onclick="toggleClientKsw('${client.name}', ${client.infos.killswitch})">${!client.infos.killswitch ? '<span style="color:red;">An</span>' : '<span style="color:limegreen;">Aus</span>'}</button></p>
+                <p><button onclick="aufladen('${client.name}')">Aufladung</button></p>
+                <p><button onclick="reload('${client.name}', false)">Reload</button>&nbsp;<button onclick="reload('${client.name}', true)">Hard-Reload</button></p>
+            `;
+            clientGrid.appendChild(clientBox);
+        });
+    }
+
+    function masterKsw(kswState) {
+        ws.send(JSON.stringify({masterKsw: kswState}));
+    }
+
+    function reload(clientName, hard) {
+        let json = {
+            client: clientName,
+            reload: true,
+            hardReload: hard,
+        };
+        ws.send(JSON.stringify(json));
+    }
+
+    function toggleClientMusik(clientName, state) {
+        let json = {
+            client: clientName,
+            musik: !state,
+        };
+        ws.send(JSON.stringify(json));
+    }
+
+    function toggleClientFtp(clientName, state) {
+        let json = {
+            client: clientName,
+            ftp: !state,
+        };
+        ws.send(JSON.stringify(json));
+    }
+
+    function toggleClientRtp(clientName, state) {
+        let json = {
+            client: clientName,
+            rtpmode: state !== 1,
+        };
+        ws.send(JSON.stringify(json));
+    }
+
+    function toggleClientKsw(clientName, state) {
+        let json = {
+            client: clientName,
+            ksw: !state,
+        };
+        ws.send(JSON.stringify(json));
+    }
+
+    function aufladen(clientName, amount) {
+        if (amount === undefined) {
+            amount = parseFloat(parseFloat(prompt(`+Guthaben für ${clientName}`, "100")).toFixed(2));
+        }
+        if (amount === null || isNaN(amount) || amount === undefined) return;
+        let json = {
+            client: clientName,
+            cns: amount,
+        };
+        ws.send(JSON.stringify(json));
+    }
+</script>
+
+</body>
+</html>

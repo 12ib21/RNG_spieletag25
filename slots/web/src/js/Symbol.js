@@ -12,6 +12,10 @@ const WALTER_MULTIPLIER = -0.5;
 const numLegendary = 2;
 const numBonus = 2;
 
+const gifs = [
+    "walter"
+];
+
 export default class Symbol {
     constructor(name = Symbol.random()) {
         if (window.killswitch === true) name += "_";
@@ -21,7 +25,7 @@ export default class Symbol {
             this.img = cache[name].cloneNode();
         } else {
             this.img = new Image();
-            this.img.src = require(`../assets/symbols/${name}.jpg`);
+            this.img.src = require(`../assets/symbols/${name}.${gifs.findIndex(p => p === name) === -1 ? "jpg" : "gif"}`);
 
             cache[name] = this.img;
         }

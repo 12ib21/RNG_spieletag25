@@ -64,22 +64,29 @@
     const clientGrid = document.getElementById('clientGrid');
     const overlay = document.getElementById('overlay');
 
-    const ws = new WebSocket(`ws://${window.location.hostname}:5561`); // Replace with your WebSocket URL
+    let ws;
+    connect();
 
-    ws.onopen = () => {
-        statusElement.textContent = 'Connected';
-        overlay.style.display = 'none';
-    };
+    function connect() {
+        ws = new WebSocket(`ws://${window.location.hostname}:5561`);
 
-    ws.onclose = () => {
-        statusElement.textContent = 'Disconnected';
-        overlay.style.display = 'flex';
-    };
+        ws.onopen = () => {
+            statusElement.textContent = 'Connected';
+            overlay.style.display = 'none';
+        };
 
-    ws.onmessage = (event) => {
-        const clients = JSON.parse(event.data);
-        updateClientGrid(clients);
-    };
+        ws.onclose = () => {
+            statusElement.textContent = 'Disconnected';
+            overlay.textContent = 'Disconnected';
+            overlay.style.display = 'flex';
+            setTimeout(connect, 1000);
+        };
+
+        ws.onmessage = (event) => {
+            const clients = JSON.parse(event.data);
+            updateClientGrid(clients);
+        };
+    }
 
     function updateClientGrid(clients) {
         clientGrid.innerHTML = ''; // Clear existing clients

@@ -200,7 +200,6 @@ const ensureLbFileExists = () => {
 ensureLbFileExists();
 
 const webserver = http.createServer((req, res) => {
-    console.log(req.url);
     if (req.method === "POST" && req.url === "/leaderboard/edit/submit") {
         let body = "";
         req.on('data', (chunk) => {
@@ -208,7 +207,6 @@ const webserver = http.createServer((req, res) => {
         });
         req.on('end', () => {
             const json = JSON.parse(body);
-            console.log(json);
             if (json.action !== undefined && json.name !== undefined) {
                 fs.readFile(lbFile, 'utf8', (err, data) => {
                     if (err) {

@@ -18,7 +18,8 @@ const sfxVolume = 1; // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
 const autoFullscreen = false;
 const preventDevTools = false;
-const keyConfig = { // space: " ", enter: "enter", etc
+const keyConfig = {
+    // space: " ", enter: "enter", etc
     spin: " ",
     allIn: "Enter",
     lowerBet: "a",
@@ -38,13 +39,16 @@ const gamepadConfig = {
     autoplayOff: "A11",
 };
 const WEBSOCKET_TIMEOUT = 1500;
+let credits = true;
 let killswitch = false;
 let killswitch_client = false;
 let killswitch_server = false;
+window.killswitch = killswitch;
 let musicAllowed = true;
 let lastCoinAufladung = Date.now();
 const ksJson = JSON.parse(window.localStorage.getItem("ks"));
 if (ksJson !== null) {
+    setCredits(false);
     window.localStorage.removeItem("ks");
     killswitch = ksJson.killswitch;
     killswitch_server = killswitch; // damits nicht reloaded
@@ -64,13 +68,25 @@ if (autoFullscreen) {
 
 function requestFullscreen() {
     try {
-        document.documentElement.requestFullscreen().then(() => {
-            document.documentElement.removeEventListener("click", requestFullscreen);
-            document.documentElement.removeEventListener("keydown", requestFullscreen);
-            document.documentElement.removeEventListener("touchstart", requestFullscreen);
-        }).catch(e => {
-            console.warn("Error while requestFullscreen:", e);
-        });
+        document.documentElement
+            .requestFullscreen()
+            .then(() => {
+                document.documentElement.removeEventListener(
+                    "click",
+                    requestFullscreen,
+                );
+                document.documentElement.removeEventListener(
+                    "keydown",
+                    requestFullscreen,
+                );
+                document.documentElement.removeEventListener(
+                    "touchstart",
+                    requestFullscreen,
+                );
+            })
+            .catch((e) => {
+                console.warn("Error while requestFullscreen:", e);
+            });
     } catch (error) {
         console.error("Error in requestFullscreen:", error);
     }
@@ -142,15 +158,14 @@ document.addEventListener("keydown", startBgmListener);
 document.addEventListener("touchstart", startBgmListener);
 
 function startBgmListener() {
+    if (credits === true) setCredits(false);
     if (bgmStarted === true || musicAllowed === false) return;
     bgmStarted = true;
-    if (audioLoaded === true)
-        startBgm(audioBufferStart);
+    if (audioLoaded === true) startBgm(audioBufferStart);
     else {
         const int = setInterval(() => {
             if (audioLoaded === true) {
-                if (musicAllowed === true)
-                    startBgm(audioBufferStart);
+                if (musicAllowed === true) startBgm(audioBufferStart);
                 clearInterval(int);
             }
         }, 100);
@@ -206,7 +221,7 @@ const config = {
 
 function incrementBal(baseAmount, add) {
     const targetTime = 2; // sec
-    const timePerIncrement = 10 // ms
+    const timePerIncrement = 10; // ms
     const div = add / (targetTime * (1000 / timePerIncrement));
 
     const incrementAmount = Math.floor(add / div);
@@ -244,7 +259,9 @@ setInterval(() => {
 updateGamepadStatus();
 
 function initWebSocket() {
-    const socket = new WebSocket(`ws://${window.location.hostname}:${webSocketPort}`);
+    const socket = new WebSocket(
+        `ws://${window.location.hostname}:${webSocketPort}`,
+    );
 
     socket.onmessage = function (event) {
         socketLastReceived = Date.now();
@@ -271,7 +288,8 @@ function initWebSocket() {
                 sourceNode.stop();
             }
             updateSymbols();
-        } else if (event.data.toString().toLowerCase() === "r") { // reload
+        } else if (event.data.toString().toLowerCase() === "r") {
+            // reload
             if (event.data.toString() === "r") {
                 let killswitch_json = {
                     killswitch: killswitch,
@@ -294,9 +312,13 @@ function initWebSocket() {
     };
 }
 
-document.getElementById('lowerBet').addEventListener("click", () => decreaseBet());
-document.getElementById('allIn').addEventListener("click", () => allIn());
-document.getElementById('increaseBet').addEventListener("click", () => increaseBet());
+document
+    .getElementById("lowerBet")
+    .addEventListener("click", () => decreaseBet());
+document.getElementById("allIn").addEventListener("click", () => allIn());
+document
+    .getElementById("increaseBet")
+    .addEventListener("click", () => increaseBet());
 
 function allIn() {
     if (slot.isSpinning) return;
@@ -363,40 +385,46 @@ function decreaseBet() {
 function setBet(betAmount) {
     oldBet = slot.bet;
     slot.bet = betAmount;
-    document.getElementById('lowerBet').disabled = betAmount <= 0.01;
-    document.getElementById('increaseBet').disabled = betAmount >= maxSelectableBet;
+    document.getElementById("lowerBet").disabled = betAmount <= 0.01;
+    document.getElementById("increaseBet").disabled =
+        betAmount >= maxSelectableBet;
     jackpot = slot.calcJackpotAmount();
     updateUI();
 }
 
 window.addEventListener("keydown", (e) => {
-    const key = e.key.toLowerCase();
-    console.log(key);
-    if (key === "f12" && preventDevTools) {
-        e.preventDefault();
-    }
-    if (key === keyConfig.spin.toLowerCase()) {
-        slot.spinButton.click();
-    } else if (key === keyConfig.allIn.toLowerCase()) {
-        allIn();
-    } else if (key === keyConfig.lowerBet.toLowerCase()) {
-        decreaseBet();
-    } else if (key === keyConfig.increaseBet.toLowerCase()) {
-        increaseBet();
-    } else if (key === keyConfig.killSwitch.toLowerCase()) {
-        killswitch_client = true;
-        updateSymbols();
-    } else if (key === keyConfig.killSwitchAus.toLowerCase()) {
-        killswitch_client = false;
-        updateSymbols();
-    } else if (key === keyConfig.addEur.toLowerCase()) {
-        const res = prompt("Passwort für Guthabenänderung");
-        if (res === keyConfig.addEurPass) {
-            try {
-                const balChg = parseFloat(parseFloat(prompt("Menge?", "10")).toFixed(2));
-                slot.addBalance(balChg);
-                updateUI();
-            } catch (e) {
+    if (credits === true) setCredits(false);
+    else {
+        const key = e.key.toLowerCase();
+        console.log(key);
+        if (key === "f12" && preventDevTools) {
+            e.preventDefault();
+        }
+        if (key === keyConfig.spin.toLowerCase()) {
+            slot.spinButton.click();
+        } else if (key === keyConfig.allIn.toLowerCase()) {
+            allIn();
+        } else if (key === keyConfig.lowerBet.toLowerCase()) {
+            decreaseBet();
+        } else if (key === keyConfig.increaseBet.toLowerCase()) {
+            increaseBet();
+        } else if (key === keyConfig.killSwitch.toLowerCase()) {
+            killswitch_client = true;
+            updateSymbols();
+        } else if (key === keyConfig.killSwitchAus.toLowerCase()) {
+            killswitch_client = false;
+            updateSymbols();
+        } else if (key === keyConfig.addEur.toLowerCase()) {
+            const res = prompt("Passwort für Guthabenänderung");
+            if (res === keyConfig.addEurPass) {
+                try {
+                    const balChg = parseFloat(
+                        parseFloat(prompt("Menge?", "10")).toFixed(2),
+                    );
+                    slot.addBalance(balChg);
+                    updateUI();
+                } catch (e) {
+                }
             }
         }
     }
@@ -409,37 +437,43 @@ function updateGamepadStatus() {
         const gamepad = gamepads[i];
         if (gamepad) {
             checkGamepadTrigger(gamepad, gamepadConfig.spin, () => {
-                slot.spinButton.click();
+                if (credits === true) setCredits(false);
+                else slot.spinButton.click();
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.allIn, () => {
-                allIn();
+                if (credits === true) setCredits(false);
+                else allIn();
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.lowerBet, () => {
-                decreaseBet();
+                if (credits === true) setCredits(false);
+                else decreaseBet();
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.increaseBet, () => {
-                increaseBet();
+                if (credits === true) setCredits(false);
+                else increaseBet();
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.autoplay, () => {
-                slot.autoPlayCheckbox.checked = true;
+                if (credits === true) setCredits(false);
+                else slot.autoPlayCheckbox.checked = true;
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.autoplayOff, () => {
-                slot.autoPlayCheckbox.checked = false;
+                if (credits === true) setCredits(false);
+                else slot.autoPlayCheckbox.checked = false;
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.killSwitch, () => {
-                killswitch_client = true;
-                updateSymbols();
-            }, () => {
-                killswitch_client = false;
-                updateSymbols();
-            });
-
+                    killswitch_client = true;
+                    updateSymbols();
+                }, () => {
+                    killswitch_client = false;
+                    updateSymbols();
+                },
+            );
         }
     }
     requestAnimationFrame(updateGamepadStatus);
@@ -448,11 +482,11 @@ function updateGamepadStatus() {
 const gamepadDebounceTimers = new Map();
 
 function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
-    const buttonStates = gamepad.buttons.map(button => button.pressed);
+    const buttonStates = gamepad.buttons.map((button) => button.pressed);
     const axes = gamepad.axes;
     if (cfg.toLowerCase().startsWith("b")) {
         const id = parseInt(cfg.slice(1));
-        const mapId = "b" + (id.toString());
+        const mapId = "b" + id.toString();
         if (buttonStates[id] === true) {
             if (!gamepadDebounceTimers.has(mapId)) {
                 fn?.();
@@ -478,7 +512,7 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
     } else if (cfg.toLowerCase().startsWith("a")) {
         const targetValue = parseFloat(cfg.toLowerCase().substring(2));
         const id = parseInt(cfg.substring(1, 2));
-        const mapId = "a" + (targetValue.toString()) + (id.toString());
+        const mapId = "a" + targetValue.toString() + id.toString();
         if (axes[id] === targetValue) {
             if (!gamepadDebounceTimers.has(mapId)) {
                 fn?.();
@@ -504,8 +538,7 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
 }
 
 function updateUI() {
-    document.getElementById("cost").innerText =
-        slot.bet.toFixed(2);
+    document.getElementById("cost").innerText = slot.bet.toFixed(2);
     document.getElementById("jp").innerHTML = jackpot.toFixed(2);
     if (slot.freeToPlay === true) {
         slot.spinButton.disabled = false;
@@ -517,8 +550,7 @@ function updateUI() {
         document.getElementById("bal").innerText = slot.currentBalance.toFixed(2);
         if (slot.bet > slot.currentBalance)
             document.getElementById("bal").parentElement.style.color = "red";
-        else
-            document.getElementById("bal").parentElement.style.color = "";
+        else document.getElementById("bal").parentElement.style.color = "";
         document.title = `${windowTitle} ~ ${slot.currentBalance.toFixed(2)}€`;
     }
     if (slot.isSpinning === true) slot.spinButton.disabled = true;
@@ -569,3 +601,13 @@ function updateSymbols() {
 window.onresize = () => {
     resizeOverlaySvg(winVisualizeSvg);
 };
+
+function setCredits(state) {
+    if (state === true) {
+        document.getElementById("credits").classList.remove("credits_off");
+        credits = state;
+    } else {
+        document.getElementById("credits").classList.add("credits_off");
+        credits = state;
+    }
+}

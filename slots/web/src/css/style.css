@@ -135,3 +135,36 @@ input[type="checkbox"] {
         opacity: 0;
     }
 }
+
+#credits {
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.90);
+    opacity: 1;
+    transition: opacity ease 0.5s;
+    z-index: 10000;
+
+    > div {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    h3 {
+        color: #d1d1d1;
+    }
+}
+
+.credits_off {
+    opacity: 0 !important;
+    pointer-events: none;
+}

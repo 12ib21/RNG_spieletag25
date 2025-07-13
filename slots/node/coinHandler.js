@@ -14,6 +14,7 @@ const webSocketPort = 8085
 const managementPort = 5560;
 const webSocketManagementPort = 5561;
 const managementDir = path.join(__dirname, "management");
+const lbFile = path.join(managementDir, "leaderboard", "lb.json");
 const port = new SerialPort({
     path: 'COM9',
     baudRate: 115200
@@ -190,7 +191,60 @@ function sendClientInfos(client) {
     }
 }
 
+const ensureLbFileExists = () => {
+    if (!fs.existsSync(lbFile)) {
+        // Create the file with an initial empty array
+        fs.writeFileSync(lbFile, JSON.stringify([], null, 2), 'utf8');
+    }
+};
+ensureLbFileExists();
+
 const webserver = http.createServer((req, res) => {
+    console.log(req.url);
+    if (req.method === "POST" && req.url === "/leaderboard/edit/submit") {
+        let body = "";
+        req.on('data', (chunk) => {
+            body += chunk.toString();
+        });
+        req.on('end', () => {
+            const json = JSON.parse(body);
+            console.log(json);
+            if (json.action !== undefined && json.name !== undefined) {
+                fs.readFile(lbFile, 'utf8', (err, data) => {
+                    if (err) {
+                        res.writeHead(500, {'Content-Type': 'application/json'});
+                        return res.end(JSON.stringify({error: 'Failed to read JSON file'}));
+                    }
+                    try {
+                        let existingJson = JSON.parse(data);
+                        if (json.action === "add" && json.name !== undefined && json.money !== undefined)
+                            existingJson.push({name: json.name, money: parseFloat(json.money)});
+                        if (json.action === "edit" && json.name !== undefined && json.money !== undefined) {
+                            const idx = existingJson.findIndex(p => p.name === json.name);
+                            if (idx !== -1) existingJson[idx].money = json.money;
+                        }
+                        if (json.action === "delete" && json.name !== undefined) {
+                            const idx = existingJson.findIndex(p => p.name === json.name);
+                            if (idx !== -1) existingJson.splice(idx, 1);
+                        }
+                        console.log(existingJson);
+                        fs.writeFile(lbFile, JSON.stringify(existingJson, null, 2), 'utf8', (err) => {
+                            if (err) {
+                                res.writeHead(500, {'Content-Type': 'text/plain'});
+                                return res.end('Failed to write JSON file');
+                            }
+                            res.writeHead(200, {'Content-Type': 'text/plain'});
+                            res.end('Data updated successfully');
+                        });
+                    } catch (err) {
+                        res.writeHead(400, {'Content-Type': 'text/plain'});
+                        res.end('Invalid JSON in request');
+                    }
+                });
+            }
+        })
+        return; // bereits gehandelt
+    }
     let filePath = path.join(managementDir, req.url.endsWith("/") ? req.url + 'index.html' : req.url);
     const extname = String(path.extname(filePath)).toLowerCase();
     const mimeTypes = {

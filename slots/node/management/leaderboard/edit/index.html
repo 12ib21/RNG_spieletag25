@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bestenliste</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #leaderboard {
+            background: #ffffff63;
+            border-radius: 8px;
+            box-shadow: 2px 0 9px 6px rgb(255 255 255 / 40%);
+            width: 75vw;
+            font-size: 2rem;
+            max-height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            > div#desc {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .competitor {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+        .name {
+            width: 75%;
+            text-align: left;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding-left: 10px;
+        }
+
+        .points {
+            width: 25%;
+            text-align: right;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding-right: 10px;
+        }
+
+    </style>
+</head>
+<body style="background-image: url('../bg.jpg')">
+<div id="leaderboard">
+
+    <div class="header">
+        <div style="font-size: larger">Bestenliste &nbsp;
+            <button onclick="add()">Hinzufügen</button>
+        </div>
+        <div id="desc">
+            <div class="name">Name</div>
+            <div class="points">Geld</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function fetchLeaderboard() {
+        const response = await fetch('../lb.json');
+        const data = await response.json();
+        data.sort((a, b) => b.money - a.money);
+        const leaderboardDiv = document.getElementById('leaderboard');
+        // Clear only the competitor entries, keeping the header intact
+        const competitorsDiv = document.createElement('div');
+        data.forEach((competitor, index) => {
+            const competitorDiv = document.createElement('div');
+            competitorDiv.className = 'competitor';
+            // Apply light gray background for even indexed competitors
+            if (index % 2 === 0) {
+                competitorDiv.style.backgroundColor = '#f0f0f063'; // Light gray
+            }
+            let [whole, decimal] = parseFloat(competitor.money).toFixed(2).split('.');
+
+            // Format the whole part by adding dots every three digits
+            whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            if (decimal.includes("e"))
+                decimal = parseFloat("0." + decimal.substring(0, Math.min(decimal.indexOf("e"), 4))).toString().substring(2) + (decimal.substring(decimal.indexOf("e"))).replace("+", "^");
+
+            competitorDiv.innerHTML = `<div class="name"><button onclick="edit('${competitor.name}', ${parseFloat(competitor.money)})">Bearbeiten</button>&nbsp;<button onclick="delete_('${competitor.name}')">Löschen</button>&nbsp;${competitor.name}</div><div class="points">${decimal ? `${whole},${decimal}` : whole}&euro;</div>`;
+            competitorsDiv.appendChild(competitorDiv);
+        });
+
+        // Remove old competitors and append new ones
+        leaderboardDiv.querySelectorAll('.competitor').forEach(div => div.remove());
+        leaderboardDiv.appendChild(competitorsDiv);
+    }
+
+    fetchLeaderboard();
+    setInterval(fetchLeaderboard, 1000);
+
+    function edit(name, orgMoney) {
+        const money = parseFloat(parseFloat(prompt(`Geld von ${name}:`, parseFloat(orgMoney).toFixed(2)).replace(",", ".")).toFixed(2));
+        if (money === null || isNaN(money)) return;
+        let jsn = {
+            action: "edit",
+            name: name,
+            money: money,
+        }
+        sendSubmit(jsn);
+    }
+
+    function add() {
+        const name = prompt("Name:");
+        if (name === "" || name === null) return;
+        const money = parseFloat(parseFloat(prompt(`Geld von ${name}:`).replace(",", ".")).toFixed(2));
+        if (money === null || isNaN(money)) return;
+        const jsn = {
+            action: "add",
+            name: name,
+            money: money,
+        };
+        sendSubmit(jsn);
+    }
+
+    function delete_(name) {
+        let jsn = {
+            action: "delete",
+            name: name,
+        };
+        sendSubmit(jsn);
+    }
+
+    function sendSubmit(json) {
+        fetch("submit", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(json),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.text(); // Parse the JSON from the response
+            })
+            .then(data => {
+                console.log('Success:', data); // Handle the response data
+                fetchLeaderboard(); // aktualisieren
+            })
+            .catch(error => {
+                console.error('Error:', error); // Handle any errors
+            });
+    }
+</script>
+</body>
+</html>

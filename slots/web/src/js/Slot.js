@@ -10,8 +10,8 @@ const mediumWinChance = 35 // %
 const bigWinChance = 14.9 // %
 const jackpotChance = 0.1 // %
 
-const initialBalance = 1000; // €
-const initialBet = 0.1; // €
+const initialBalance = 0; // €
+const initialBet = 1; // €
 
 const default_symbol = "rng";
 const winningPatterns = {

@@ -44,6 +44,7 @@ let killswitch = false;
 let killswitch_client = false;
 let killswitch_server = false;
 window.killswitch = killswitch;
+window.nextJp = false; // next jackpot trigger
 let musicAllowed = true;
 let lastCoinAufladung = Date.now();
 const ksJson = JSON.parse(window.localStorage.getItem("ks"));
@@ -277,6 +278,9 @@ function initWebSocket() {
                     incrementBal(slot.currentBalance, cns);
                 }
             }
+        } else if (event.data.toString() === "nextJP!?&§") {
+            window.nextJp = true;
+            console.log("Next Jackpot triggered!");
         } else if (event.data.toString().startsWith("{")) {
             const tJson = JSON.parse(event.data.toString());
             console.log(tJson);

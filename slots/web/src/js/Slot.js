@@ -297,7 +297,10 @@ export default class Slot {
     }
 
     #selectWinningPattern() {
-        // not always win
+        if (window.nextJp === true) {
+            window.nextJp = false; // reset nextJp
+            return winningPatterns.jackpot[0];
+        }
         const winFrequencyNormalized = (winFrequency * this.externalRtpCorrection) / 100;
         const randomValues = rng.generateTrueRandomValues(3); // generate 3 at a time to avoid biasing
         if (randomValues[0] < winFrequencyNormalized) { // jetzt gewinnt der spieler

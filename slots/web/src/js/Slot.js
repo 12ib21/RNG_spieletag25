@@ -443,7 +443,7 @@ export default class Slot {
             // gewinnmenge anzeigen
             const winDisplay = document.getElementById("winText");
             const winTypeText = `${this.#capitalizeFirstLetter(this.biggestWinType)} ${winAmount > 0 ? "Win" : "Loss"}!`;
-            winDisplay.innerHTML = `${winAmount >= 0 ? "" : `${window.killswitch ? "Schade" : "Waltercombo"}!<br>`}${winTypeText}<br>${winAmount >= 0 ? "+" : ""}${winAmount}€`;
+            winDisplay.innerHTML = `${winAmount > 0 ? "" : `${window.killswitch ? "Schade" : "Waltercombo"}!<br>`}${winTypeText}<br>${winAmount > 0 ? "+" : ""}${winAmount}€`;
             winDisplay.style.animation = "pop 2s forwards";
             setTimeout(() => {
                 winDisplay.style.animation = "";

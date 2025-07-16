@@ -10,11 +10,15 @@ import spinStartSfx from "../assets/sound/spinStart.mp3";
 import reelsSpinningSfx from "../assets/sound/reelsSpinning.mp3";
 import looseSfx from "../assets/sound/loose.mp3";
 
+import bohlAllIn from "../assets/sound/voice/all_in.mp3";
+import bohlWalterCombo from "../assets/sound/voice/waltercombo.mp3";
+
 const windowTitle = document.title;
 const webSocketPort = 8085;
 const MAX_COIN_AUFLADUNG = 1000000;
-const bgmVolume = 0.75; // max 1
-const sfxVolume = 1; // max 1
+const bgmVolume = 0.25; // max 1
+const sfxVolume = 0.5; // max 1
+const bohlVolume = 1; // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
 const autoFullscreen = true;
 const preventDevTools = true;
@@ -192,6 +196,13 @@ const config = {
     onSpinEnd: (winType, winAmount) => {
         if (winAmount !== 0) {
             console.log(winType);
+            if (winAmount < 0) {
+                if (window.killswitch === false)
+                    playSound(bohlWalterCombo, bohlVolume);
+                else
+                    playSound(looseSfx, sfxVolume);
+            }
+
             switch (winType) {
                 case "jackpot":
                     playSound(jackpotSfx, sfxVolume);
@@ -333,6 +344,7 @@ function allIn() {
         const winDisplay = document.getElementById("winText");
         winDisplay.innerHTML = `All in!<br>${slot.bet.toFixed(2)}€`;
         winDisplay.style.animation = "pop 2s forwards";
+        playSound(bohlAllIn, bohlVolume);
         setTimeout(() => {
             winDisplay.style.animation = "";
         }, 2000);
@@ -471,12 +483,12 @@ function updateGamepadStatus() {
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.killSwitch, () => {
-                    killswitch_client = true;
-                    updateSymbols();
-                }, () => {
-                    killswitch_client = false;
-                    updateSymbols();
-                },
+                killswitch_client = true;
+                updateSymbols();
+            }, () => {
+                killswitch_client = false;
+                updateSymbols();
+            },
             );
         }
     }
@@ -498,14 +510,14 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, {intervalId});
+                    gamepadDebounceTimers.set(mapId, { intervalId });
                 }, 800);
-                gamepadDebounceTimers.set(mapId, {timeoutId});
+                gamepadDebounceTimers.set(mapId, { timeoutId });
             }
         } else {
             nfn?.();
             if (gamepadDebounceTimers.has(mapId)) {
-                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
+                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -524,13 +536,13 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, {intervalId});
+                    gamepadDebounceTimers.set(mapId, { intervalId });
                 }, 800);
-                gamepadDebounceTimers.set(mapId, {timeoutId});
+                gamepadDebounceTimers.set(mapId, { timeoutId });
             }
         } else {
             if (gamepadDebounceTimers.has(mapId)) {
-                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
+                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);

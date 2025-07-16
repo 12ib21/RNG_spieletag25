@@ -1,5 +1,5 @@
 const readline = require('readline');
-const {SerialPort} = require("serialport");
+const { SerialPort } = require("serialport");
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -39,7 +39,7 @@ const clients = [
     },
     {
         name: "Rot",
-        ip: "192.168.162.116",
+        ip: "192.168.2.2",
         muenzomat: false,
         infos: {
             musik: true,
@@ -47,7 +47,7 @@ const clients = [
     },
     {
         name: "Gruen",
-        ip: "192.168.90.0",
+        ip: "192.168.2.3",
         muenzomat: false,
         infos: {
             musik: false,
@@ -146,7 +146,7 @@ function broadcast(msg) {
 function broadcastManagement() {
     const clientsCp = clients
         .filter(client => client.ws && client.ws.readyState === WebSocket.OPEN) // Filter clients
-        .map(({ws, ...rest}) => rest);
+        .map(({ ws, ...rest }) => rest);
     managementClients.forEach(client => {
         if (client.ws !== undefined && client.ws.readyState === WebSocket.OPEN)
             client.ws.send(JSON.stringify(clientsCp));
@@ -163,7 +163,7 @@ function _broadcast(msg) {
     });
 }
 
-const wss = new WebSocket.Server({port: webSocketPort});
+const wss = new WebSocket.Server({ port: webSocketPort });
 
 wss.on('connection', (ws, req) => {
     const ip = req.socket.remoteAddress.replace("::ffff:", "");
@@ -210,13 +210,13 @@ const webserver = http.createServer((req, res) => {
             if (json.action !== undefined && json.name !== undefined) {
                 fs.readFile(lbFile, 'utf8', (err, data) => {
                     if (err) {
-                        res.writeHead(500, {'Content-Type': 'application/json'});
-                        return res.end(JSON.stringify({error: 'Failed to read JSON file'}));
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        return res.end(JSON.stringify({ error: 'Failed to read JSON file' }));
                     }
                     try {
                         let existingJson = JSON.parse(data);
                         if (json.action === "add" && json.name !== undefined && json.money !== undefined)
-                            existingJson.push({name: json.name, money: parseFloat(json.money)});
+                            existingJson.push({ name: json.name, money: parseFloat(json.money) });
                         if (json.action === "edit" && json.name !== undefined && json.money !== undefined) {
                             const idx = existingJson.findIndex(p => p.name === json.name);
                             if (idx !== -1) existingJson[idx].money = json.money;
@@ -228,14 +228,14 @@ const webserver = http.createServer((req, res) => {
                         console.log(existingJson);
                         fs.writeFile(lbFile, JSON.stringify(existingJson, null, 2), 'utf8', (err) => {
                             if (err) {
-                                res.writeHead(500, {'Content-Type': 'text/plain'});
+                                res.writeHead(500, { 'Content-Type': 'text/plain' });
                                 return res.end('Failed to write JSON file');
                             }
-                            res.writeHead(200, {'Content-Type': 'text/plain'});
+                            res.writeHead(200, { 'Content-Type': 'text/plain' });
                             res.end('Data updated successfully');
                         });
                     } catch (err) {
-                        res.writeHead(400, {'Content-Type': 'text/plain'});
+                        res.writeHead(400, { 'Content-Type': 'text/plain' });
                         res.end('Invalid JSON in request');
                     }
                 });
@@ -276,22 +276,22 @@ const webserver = http.createServer((req, res) => {
                 res.end('500 Internal Server Error');
             }
         } else {
-            res.writeHead(200, {'Content-Type': contentType});
+            res.writeHead(200, { 'Content-Type': contentType });
             res.end(content, 'utf-8');
         }
     });
 });
 
-const wss_management = new WebSocket.Server({port: webSocketManagementPort});
+const wss_management = new WebSocket.Server({ port: webSocketManagementPort });
 let managementClients = [];
 wss_management.on('connection', (ws, req) => {
     const ip = req.socket.remoteAddress.replace("::ffff:", "");
     const i = managementClients.findIndex(managementClient => managementClient.ip === ip);
     if (i !== -1) managementClients.slice(i, 1); // durch neue verbindung ersetzen
-    managementClients.push({ip: ip, ws: ws});
+    managementClients.push({ ip: ip, ws: ws });
     const clientsCp = clients
         .filter(client => client.ws && client.ws.readyState === WebSocket.OPEN) // Filter clients
-        .map(({ws, ...rest}) => rest);
+        .map(({ ws, ...rest }) => rest);
     ws.send(JSON.stringify(clientsCp));
 
     ws.on('message', (msg) => {

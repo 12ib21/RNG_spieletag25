@@ -225,7 +225,7 @@ export default class Slot {
     }
 
     spin() {
-        if (this.isSpinning) return;
+        if (this.isSpinning || this.currentBalance === 0) return;
         if (this.currentBalance < Math.abs(this.bet) && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
             return;

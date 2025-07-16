@@ -13,11 +13,11 @@ import looseSfx from "../assets/sound/loose.mp3";
 const windowTitle = document.title;
 const webSocketPort = 8085;
 const MAX_COIN_AUFLADUNG = 1000000;
-const bgmVolume = 0.5; // max 1
+const bgmVolume = 0.75; // max 1
 const sfxVolume = 1; // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
-const autoFullscreen = false;
-const preventDevTools = false;
+const autoFullscreen = true;
+const preventDevTools = true;
 const keyConfig = {
     // space: " ", enter: "enter", etc
     spin: " ",

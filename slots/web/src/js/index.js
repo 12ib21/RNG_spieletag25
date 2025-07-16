@@ -16,6 +16,7 @@ import bohlSmallWin from "../assets/sound/voice/small_win.mp3";
 import bohlMediumWin from "../assets/sound/voice/medium_win.mp3";
 import bohlBigWin from "../assets/sound/voice/big_win.mp3";
 import bohlJackpot from "../assets/sound/voice/jackpot.mp3";
+import bohlPleite from "..//assets/sound/voice/pleite.mp3";
 
 const windowTitle = document.title;
 const webSocketPort = 8085;
@@ -234,8 +235,13 @@ const config = {
                 updateUI();
             }, 2000);
         } else {
-            playSound(looseSfx, sfxVolume);
+            playSound(looseSfx, sfxVolume / (slot.currentBalance <= 0 ? 2 : 1));
             updateUI();
+        }
+        if (slot.currentBalance <= 0) {
+            setTimeout(() => {
+                playSound(bohlPleite, bohlVolume);
+            }, winAmount === 0 ? 100 : 1500);
         }
     },
     winVisualizeSvg: winVisualizeSvg,

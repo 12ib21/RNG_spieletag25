@@ -209,8 +209,10 @@ const config = {
 
             switch (winType) {
                 case "jackpot":
-                    playSound(jackpotSfx, sfxVolume);
                     playSound(bohlJackpot, bohlVolume);
+                    setTimeout(() => {
+                        playSound(jackpotSfx, sfxVolume);
+                    }, 750);
                     break;
                 case "big":
                     playSound(bigWinSfx, sfxVolume / 2);

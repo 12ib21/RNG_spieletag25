@@ -112,9 +112,19 @@
                 <p><b>KSW:</b> <i>${client.infos.killswitch ? '<span style="color:red;">An</span>' : '<span style="color:limegreen;">Aus</span>'}</i>&nbsp;&nbsp;<button onclick="toggleClientKsw('${client.name}', ${client.infos.killswitch})">${!client.infos.killswitch ? '<span style="color:red;">An</span>' : '<span style="color:limegreen;">Aus</span>'}</button></p>
                 <p><button onclick="aufladen('${client.name}')">Aufladung</button></p>
                 <p><button onclick="reload('${client.name}', false)">Reload</button>&nbsp;<button onclick="reload('${client.name}', true)">Hard-Reload</button></p>
-            `;
+                <p><button onclick="nextJp('${client.name}', false)">JP</button></p>
+                `;
             clientGrid.appendChild(clientBox);
         });
+    }
+
+    function nextJp (clientName) {
+        if (!confirm(`Wirklich nextJP für "${clientName}"?\nKann mit reload zurückgesetzt werden`)) return;
+        let json = {
+            client: clientName,
+            nextJp: true,
+        };
+        ws.send(JSON.stringify(json));
     }
 
     function masterKsw(kswState) {

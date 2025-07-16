@@ -350,6 +350,9 @@ wss_management.on('connection', (ws, req) => {
                             if (client.ws !== undefined && client.ws.readyState === WebSocket.OPEN)
                                 client.ws.send(hard === true ? "R" : "r");
                         }
+                        if (recvJson.nextJp !== undefined && client.ws !== undefined && client.ws.readyState === WebSocket.OPEN) {
+                            if (recvJson.nextJp === true) client.ws.send("nextJP!?&§");
+                        }
 
                         if (client.ws !== undefined && client.ws.readyState === WebSocket.OPEN)
                             client.ws.send(JSON.stringify(client.infos));

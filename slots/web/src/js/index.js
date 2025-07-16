@@ -17,6 +17,15 @@ import bohlMediumWin from "../assets/sound/voice/medium_win.mp3";
 import bohlBigWin from "../assets/sound/voice/big_win.mp3";
 import bohlJackpot from "../assets/sound/voice/jackpot.mp3";
 import bohlPleite from "..//assets/sound/voice/pleite.mp3";
+import bohlAmbient1 from "../assets/sound/voice/ambient1.mp3";
+import bohlAmbient2 from "../assets/sound/voice/ambient2.mp3";
+import bohlAmbient3 from "../assets/sound/voice/ambient3.mp3";
+
+const ambientSounds = [
+    bohlAmbient1,
+    bohlAmbient2,
+    bohlAmbient3
+];
 
 const windowTitle = document.title;
 const webSocketPort = 8085;
@@ -24,6 +33,7 @@ const MAX_COIN_AUFLADUNG = 1000000;
 const bgmVolume = 0.25; // max 1
 const sfxVolume = 0.5; // max 1
 const bohlVolume = 1; // max 1
+const bohlAmbientVolume = 1 // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
 const autoFullscreen = true;
 const preventDevTools = true;
@@ -142,6 +152,7 @@ function loadBuffer(url) {
 }
 
 loadAudio();
+queueAmbientSound();
 
 function startBgm(buffer) {
     if (audioLoaded === false || musicAllowed === false) return;
@@ -210,21 +221,21 @@ const config = {
 
             switch (winType) {
                 case "jackpot":
-                    playSound(bohlJackpot, bohlVolume);
+                    if (winAmount > 0)playSound(bohlJackpot, bohlVolume);
                     setTimeout(() => {
                         playSound(jackpotSfx, sfxVolume);
                     }, 750);
                     break;
                 case "big":
-                    playSound(bigWinSfx, sfxVolume / 2);
+                    if (winAmount > 0) playSound(bigWinSfx, sfxVolume / 2);
                     playSound(bohlBigWin, bohlVolume);
                     break;
                 case "medium":
-                    playSound(smallMediumWinSfx, sfxVolume / 2);
+                    if (winAmount > 0) playSound(smallMediumWinSfx, sfxVolume / 2);
                     playSound(bohlMediumWin, bohlVolume);
                     break;
                 case "basic":
-                    playSound(smallMediumWinSfx, sfxVolume / 2);
+                    if (winAmount > 0) playSound(smallMediumWinSfx, sfxVolume / 2);
                     playSound(bohlSmallWin, bohlVolume);
                     break;
             }
@@ -246,6 +257,19 @@ const config = {
     },
     winVisualizeSvg: winVisualizeSvg,
 };
+
+function queueAmbientSound() {
+    setTimeout(() => {
+            ambientSound();
+            queueAmbientSound();
+    }, 1000 * 60 + Math.floor(Math.random() * 10000));
+}
+
+function ambientSound() {
+    if (ambientSounds.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * ambientSounds.length);
+    playSound(ambientSounds[randomIndex], bohlAmbientVolume);
+}
 
 function incrementBal(baseAmount, add) {
     const targetTime = 2; // sec

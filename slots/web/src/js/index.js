@@ -12,6 +12,10 @@ import looseSfx from "../assets/sound/loose.mp3";
 
 import bohlAllIn from "../assets/sound/voice/all_in.mp3";
 import bohlWalterCombo from "../assets/sound/voice/waltercombo.mp3";
+import bohlSmallWin from "../assets/sound/voice/small_win.mp3";
+import bohlMediumWin from "../assets/sound/voice/medium_win.mp3";
+import bohlBigWin from "../assets/sound/voice/big_win.mp3";
+import bohlJackpot from "../assets/sound/voice/jackpot.mp3";
 
 const windowTitle = document.title;
 const webSocketPort = 8085;
@@ -206,15 +210,19 @@ const config = {
             switch (winType) {
                 case "jackpot":
                     playSound(jackpotSfx, sfxVolume);
+                    playSound(bohlJackpot, bohlVolume);
                     break;
                 case "big":
-                    playSound(bigWinSfx, sfxVolume);
+                    playSound(bigWinSfx, sfxVolume / 2);
+                    playSound(bohlBigWin, bohlVolume);
                     break;
                 case "medium":
-                    playSound(smallMediumWinSfx, sfxVolume);
+                    playSound(smallMediumWinSfx, sfxVolume / 2);
+                    playSound(bohlMediumWin, bohlVolume);
                     break;
                 case "basic":
-                    playSound(smallMediumWinSfx, sfxVolume);
+                    playSound(smallMediumWinSfx, sfxVolume / 2);
+                    playSound(bohlSmallWin, bohlVolume);
                     break;
             }
             setTimeout(() => {

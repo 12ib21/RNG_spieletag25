@@ -2,7 +2,7 @@ import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 import rng from "./trueRNG.js";
 
-const rtpCorrection = 0.33;
+const rtpCorrection = 0.35;
 const winFrequency = 40; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
@@ -362,6 +362,7 @@ export default class Slot {
         // symbols ist im slot Format!
         let winAmount = 0;
         let matches = [];
+        window.isRothWin = false;
         winningPatterns.basic.forEach((pattern, index) => {
             const res = this.#getPatternMatches(pattern, symbols, "basic", index, overwrite_ths);
             if (res.length !== 0) {
@@ -528,6 +529,7 @@ export default class Slot {
                 match.patternType = patternType;
                 match.patternIndex = patternIndex;
                 if (match.matches) {
+                    if (match.symbol === "roth") window.isRothWin = true;
                     finalMatches.push(match);
                     if (overwrite_ths) {
                         if (this.biggestWinType === "basic") {

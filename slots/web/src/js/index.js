@@ -245,6 +245,11 @@ const config = {
                 } else playSound(looseSfx, sfxVolume);
             }
 
+            if (window.isRothWin === true) {
+                window.isRothWin = false;
+                playSound(bohlRothWin, bohlVolume);
+            }
+
             switch (winType) {
                 case "jackpot":
                     if (winAmount > 0) playSound(bohlJackpot, bohlVolume);

@@ -50,6 +50,7 @@ export default class Symbol {
             "moehrle",
             "temmel",
             "volker",
+            "roth",
             "woerle",
             "walter",
             "mueller_deuschle",

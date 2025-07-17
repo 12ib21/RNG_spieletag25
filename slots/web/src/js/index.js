@@ -11,6 +11,8 @@ import reelsSpinningSfx from "../assets/sound/reelsSpinning.mp3";
 import looseSfx from "../assets/sound/loose.mp3";
 
 import bohlAllIn from "../assets/sound/voice/all_in.mp3";
+import bohlAllInDecrease1 from "../assets/sound/voice/all_in_decrease1.mp3";
+import bohlAllInDecrease2 from "../assets/sound/voice/all_in_decrease2.mp3";
 import bohlWalterCombo1 from "../assets/sound/voice/waltercombo1.mp3";
 import bohlWalterCombo2 from "../assets/sound/voice/waltercombo2.mp3";
 import bohlWalterCombo3 from "../assets/sound/voice/waltercombo3.mp3";
@@ -37,6 +39,7 @@ import bohlIdle3 from "../assets/sound/voice/idle3.mp3";
 import bohlIdle4 from "../assets/sound/voice/idle4.mp3";
 import bohlIdle5 from "../assets/sound/voice/idle5.mp3";
 
+const allInDecreaseSounds = [bohlAllInDecrease1, bohlAllInDecrease2];
 const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];
 const mediumWinSounds = [bohlMediumWin1, bohlMediumWin2];
 const basicWinSounds = [bohlSmallWin1, bohlSmallWin2];
@@ -444,11 +447,19 @@ document
     .getElementById("increaseBet")
     .addEventListener("click", () => increaseBet());
 
-let lastAllInTrigger = Date.now();
+let lastAllInTrigger = Date.now() - 2500;
+let lastAllInTriggerDecrease = Date.now() - 2500;
 
 function allIn() {
     if (slot.isSpinning) return;
     if (slot.bet === slot.currentBalance) {
+        if (Date.now() - lastAllInTriggerDecrease >= 2500) {
+            if (allInDecreaseSounds.length !== 0) {
+                const randomIndex = Math.floor(Math.random() * allInDecreaseSounds.length);
+                playSound(allInDecreaseSounds[randomIndex], bohlVolume);
+            }
+            lastAllInTriggerDecrease = Date.now();
+        }
         setBet(oldBet);
     } else {
         setBet(Math.max(0, slot.currentBalance));

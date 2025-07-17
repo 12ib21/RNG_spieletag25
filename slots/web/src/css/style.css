@@ -22,6 +22,8 @@ body {
     height: calc((3 / 5) * 100vw);
     max-height: calc(90vh - 50px - 40px);
     max-width: calc((5 / 3) * (90vh - 50px - 40px));
+    pointer-events: none;
+    user-select: none;
 }
 
 .reel {

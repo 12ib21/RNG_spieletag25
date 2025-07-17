@@ -38,6 +38,7 @@ import bohlIdle2 from "../assets/sound/voice/idle2.mp3";
 import bohlIdle3 from "../assets/sound/voice/idle3.mp3";
 import bohlIdle4 from "../assets/sound/voice/idle4.mp3";
 import bohlIdle5 from "../assets/sound/voice/idle5.mp3";
+import bohlRothWin from "../assets/sound/voice/roth_win.mp3";
 
 const allInDecreaseSounds = [bohlAllInDecrease1, bohlAllInDecrease2];
 const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];

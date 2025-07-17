@@ -21,16 +21,28 @@ import bohlMediumWin2 from "../assets/sound/voice/medium_win2.mp3";
 import bohlBigWin from "../assets/sound/voice/big_win.mp3";
 import bohlJackpot from "../assets/sound/voice/jackpot.mp3";
 import bohlPleite from "..//assets/sound/voice/pleite.mp3";
+import bohlLoose1 from "../assets/sound/voice/loose1.mp3";
+import bohlLoose2 from "../assets/sound/voice/loose2.mp3";
+import bohlLoose3 from "../assets/sound/voice/loose3.mp3";
+import bohlLoose4 from "../assets/sound/voice/loose4.mp3";
+import bohlLoose5 from "../assets/sound/voice/loose5.mp3";
 import bohlAmbient1 from "../assets/sound/voice/ambient1.mp3";
 import bohlAmbient2 from "../assets/sound/voice/ambient2.mp3";
 import bohlAmbient3 from "../assets/sound/voice/ambient3.mp3";
 import bohlAmbient4 from "../assets/sound/voice/ambient4.mp3";
 import bohlAmbient5 from "../assets/sound/voice/ambient5.mp3";
+import bohlIdle1 from "../assets/sound/voice/idle1.mp3";
+import bohlIdle2 from "../assets/sound/voice/idle2.mp3";
+import bohlIdle3 from "../assets/sound/voice/idle3.mp3";
+import bohlIdle4 from "../assets/sound/voice/idle4.mp3";
+import bohlIdle5 from "../assets/sound/voice/idle5.mp3";
 
 const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];
 const mediumWinSounds = [bohlMediumWin1, bohlMediumWin2];
 const basicWinSounds = [bohlSmallWin1, bohlSmallWin2];
+const looseSounds = [bohlLoose1, bohlLoose2, bohlLoose3, bohlLoose4, bohlLoose5];
 const ambientSounds = [bohlAmbient1, bohlAmbient2, bohlAmbient3, bohlAmbient4, bohlAmbient5];
+const idleSounds = [bohlIdle1, bohlIdle2, bohlIdle3, bohlIdle4, bohlIdle5];
 
 const windowTitle = document.title;
 const webSocketPort = 8085;
@@ -39,6 +51,8 @@ const bgmVolume = 0.25; // max 1
 const sfxVolume = 0.5; // max 1
 const bohlVolume = 1; // max 1
 const bohlAmbientVolume = 1; // max 1
+const bohlIdleVolume = 1; // max 1
+const delayUntilIdleSounds = 15; // s
 const maxSelectableBet = 10000; // all in zählt seperat
 const autoFullscreen = true;
 const preventDevTools = true;
@@ -67,6 +81,7 @@ let credits = true;
 let killswitch = false;
 let killswitch_client = false;
 let killswitch_server = false;
+let lastSpin = Date.now();
 window.killswitch = killswitch;
 window.nextJp = false; // next jackpot trigger
 let musicAllowed = true;
@@ -266,17 +281,21 @@ const config = {
                 updateUI();
             }, 2000);
         } else {
-            playSound(looseSfx, sfxVolume / (slot.currentBalance <= 0 ? 2 : 1));
+            if (window.killswitch === false) {
+                if (looseSounds.length !== 0) {
+                    const randomIndex = Math.floor(Math.random() * looseSounds.length);
+                    playSound(looseSounds[randomIndex], bohlVolume);
+                }
+            } else playSound(looseSfx, sfxVolume / (slot.currentBalance <= 0 ? 2 : 1));
             updateUI();
         }
         if (slot.currentBalance <= 0) {
             setTimeout(
                 () => {
                     playSound(bohlPleite, bohlVolume);
-                },
-                winAmount === 0 ? 100 : 1500,
-            );
+                }, winAmount === 0 ? 100 : 1500);
         }
+        lastSpin = Date.now();
     },
     winVisualizeSvg: winVisualizeSvg,
 };
@@ -295,6 +314,30 @@ function ambientSound() {
     const randomIndex = Math.floor(Math.random() * ambientSounds.length);
     playSound(ambientSounds[randomIndex], bohlAmbientVolume);
 }
+
+let idleSoundQueueId = null;
+
+function queueIdleSound() {
+    if (slot.isSpinning === false && Date.now() - lastSpin >= 1000 * delayUntilIdleSounds) {
+        idleSoundQueueId = setTimeout(() => {
+            idleound();
+            queueAmbientSound();
+        }, 1000 * 15 + Math.floor(Math.random() * 1000 * 30));
+    } else {
+        if (idleSoundQueueId !== null) {
+            clearTimeout(idleSoundQueueId);
+            idleSoundQueueId = null;
+        }
+        setTimeout(queueIdleSound, 1000);
+    }
+}
+
+function idleound() {
+    if (idleSounds.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * idleSounds.length);
+    playSound(idleSounds[randomIndex], bohlIdleVolume);
+}
+
 
 function incrementBal(baseAmount, add) {
     const targetTime = 2; // sec
@@ -324,6 +367,7 @@ setTimeout(updateUI, 1000);
 const slot = new Slot(document.getElementById("slot"), config);
 let jackpot = slot.calcJackpotAmount();
 let oldBet = slot.bet;
+queueIdleSound();
 
 // WebSocket connection to server
 let socketLastReceived = Date.now();

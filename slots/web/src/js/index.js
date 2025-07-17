@@ -444,6 +444,8 @@ document
     .getElementById("increaseBet")
     .addEventListener("click", () => increaseBet());
 
+let lastAllInTrigger = Date.now();
+
 function allIn() {
     if (slot.isSpinning) return;
     if (slot.bet === slot.currentBalance) {
@@ -453,7 +455,10 @@ function allIn() {
         const winDisplay = document.getElementById("winText");
         winDisplay.innerHTML = `All in!<br>${slot.bet.toFixed(2)}€`;
         winDisplay.style.animation = "pop 2s forwards";
-        playSound(bohlAllIn, bohlVolume);
+        if (Date.now() - lastAllInTrigger >= 2500) {
+            playSound(bohlAllIn, bohlVolume);
+            lastAllInTrigger = Date.now();
+        }
         setTimeout(() => {
             winDisplay.style.animation = "";
         }, 2000);

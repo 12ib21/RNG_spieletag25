@@ -24,11 +24,13 @@ import bohlPleite from "..//assets/sound/voice/pleite.mp3";
 import bohlAmbient1 from "../assets/sound/voice/ambient1.mp3";
 import bohlAmbient2 from "../assets/sound/voice/ambient2.mp3";
 import bohlAmbient3 from "../assets/sound/voice/ambient3.mp3";
+import bohlAmbient4 from "../assets/sound/voice/ambient4.mp3";
+import bohlAmbient5 from "../assets/sound/voice/ambient5.mp3";
 
 const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];
 const mediumWinSounds = [bohlMediumWin1, bohlMediumWin2];
 const basicWinSounds = [bohlSmallWin1, bohlSmallWin2];
-const ambientSounds = [bohlAmbient1, bohlAmbient2, bohlAmbient3];
+const ambientSounds = [bohlAmbient1, bohlAmbient2, bohlAmbient3, bohlAmbient4, bohlAmbient5];
 
 const windowTitle = document.title;
 const webSocketPort = 8085;
@@ -285,8 +287,7 @@ function queueAmbientSound() {
             ambientSound();
             queueAmbientSound();
         },
-        1000 * 60 + Math.floor(Math.random() * 10000),
-    );
+        1000 * 15 + Math.floor(Math.random() * 1000 * 30));
 }
 
 function ambientSound() {

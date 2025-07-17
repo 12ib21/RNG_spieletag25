@@ -221,7 +221,7 @@ const config = {
 
             switch (winType) {
                 case "jackpot":
-                    if (winAmount > 0)playSound(bohlJackpot, bohlVolume);
+                    if (winAmount > 0) playSound(bohlJackpot, bohlVolume);
                     setTimeout(() => {
                         playSound(jackpotSfx, sfxVolume);
                     }, 750);
@@ -260,8 +260,8 @@ const config = {
 
 function queueAmbientSound() {
     setTimeout(() => {
-            ambientSound();
-            queueAmbientSound();
+        ambientSound();
+        queueAmbientSound();
     }, 1000 * 60 + Math.floor(Math.random() * 10000));
 }
 
@@ -434,7 +434,7 @@ function decreaseBet() {
     } else {
         newBet = Math.max(currentBet - 0.01, 0.01);
     }
-    newBet = Math.max(0, Math.min(slot.currentBalance, newBet));
+    newBet = Math.max(0, Math.min(slot.currentBalance, Math.min(maxSelectableBet, newBet)));
     setBet(Math.round(newBet * 100) / 100);
 }
 

@@ -11,7 +11,9 @@ import reelsSpinningSfx from "../assets/sound/reelsSpinning.mp3";
 import looseSfx from "../assets/sound/loose.mp3";
 
 import bohlAllIn from "../assets/sound/voice/all_in.mp3";
-import bohlWalterCombo from "../assets/sound/voice/waltercombo.mp3";
+import bohlWalterCombo1 from "../assets/sound/voice/waltercombo1.mp3";
+import bohlWalterCombo2 from "../assets/sound/voice/waltercombo2.mp3";
+import bohlWalterCombo3 from "../assets/sound/voice/waltercombo3.mp3";
 import bohlSmallWin from "../assets/sound/voice/small_win.mp3";
 import bohlMediumWin from "../assets/sound/voice/medium_win.mp3";
 import bohlBigWin from "../assets/sound/voice/big_win.mp3";
@@ -21,11 +23,8 @@ import bohlAmbient1 from "../assets/sound/voice/ambient1.mp3";
 import bohlAmbient2 from "../assets/sound/voice/ambient2.mp3";
 import bohlAmbient3 from "../assets/sound/voice/ambient3.mp3";
 
-const ambientSounds = [
-    bohlAmbient1,
-    bohlAmbient2,
-    bohlAmbient3
-];
+const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];
+const ambientSounds = [bohlAmbient1, bohlAmbient2, bohlAmbient3];
 
 const windowTitle = document.title;
 const webSocketPort = 8085;
@@ -33,7 +32,7 @@ const MAX_COIN_AUFLADUNG = 1000000;
 const bgmVolume = 0.25; // max 1
 const sfxVolume = 0.5; // max 1
 const bohlVolume = 1; // max 1
-const bohlAmbientVolume = 1 // max 1
+const bohlAmbientVolume = 1; // max 1
 const maxSelectableBet = 10000; // all in zählt seperat
 const autoFullscreen = true;
 const preventDevTools = true;
@@ -213,10 +212,11 @@ const config = {
         if (winAmount !== 0) {
             console.log(winType);
             if (winAmount < 0) {
-                if (window.killswitch === false)
-                    playSound(bohlWalterCombo, bohlVolume);
-                else
-                    playSound(looseSfx, sfxVolume);
+                if (window.killswitch === false) {
+                    if (walterComboSounds.length === 0) return;
+                    const randomIndex = Math.floor(Math.random() * walterComboSounds.length);
+                    playSound(walterComboSounds[randomIndex], bohlVolume);
+                } else playSound(looseSfx, sfxVolume);
             }
 
             switch (winType) {
@@ -227,15 +227,22 @@ const config = {
                     }, 750);
                     break;
                 case "big":
-                    if (winAmount > 0) playSound(bigWinSfx, sfxVolume / 2);
+                    if (winAmount > 0)
+                        setTimeout(() => {
+                            playSound(bigWinSfx, sfxVolume / 2);
+                        }, 500);
                     playSound(bohlBigWin, bohlVolume);
                     break;
                 case "medium":
-                    if (winAmount > 0) playSound(smallMediumWinSfx, sfxVolume / 2);
+                    if (winAmount > 0) setTimeout(() => {
+                        playSound(smallMediumWinSfx, sfxVolume / 2);
+                    }, 500);
                     playSound(bohlMediumWin, bohlVolume);
                     break;
                 case "basic":
-                    if (winAmount > 0) playSound(smallMediumWinSfx, sfxVolume / 2);
+                    if (winAmount > 0) setTimeout(() => {
+                        playSound(smallMediumWinSfx, sfxVolume / 2);
+                    }, 500);
                     playSound(bohlSmallWin, bohlVolume);
                     break;
             }
@@ -250,19 +257,25 @@ const config = {
             updateUI();
         }
         if (slot.currentBalance <= 0) {
-            setTimeout(() => {
-                playSound(bohlPleite, bohlVolume);
-            }, winAmount === 0 ? 100 : 1500);
+            setTimeout(
+                () => {
+                    playSound(bohlPleite, bohlVolume);
+                },
+                winAmount === 0 ? 100 : 1500,
+            );
         }
     },
     winVisualizeSvg: winVisualizeSvg,
 };
 
 function queueAmbientSound() {
-    setTimeout(() => {
-        ambientSound();
-        queueAmbientSound();
-    }, 1000 * 60 + Math.floor(Math.random() * 10000));
+    setTimeout(
+        () => {
+            ambientSound();
+            queueAmbientSound();
+        },
+        1000 * 60 + Math.floor(Math.random() * 10000),
+    );
 }
 
 function ambientSound() {
@@ -434,7 +447,10 @@ function decreaseBet() {
     } else {
         newBet = Math.max(currentBet - 0.01, 0.01);
     }
-    newBet = Math.max(0, Math.min(slot.currentBalance, Math.min(maxSelectableBet, newBet)));
+    newBet = Math.max(
+        0,
+        Math.min(slot.currentBalance, Math.min(maxSelectableBet, newBet)),
+    );
     setBet(Math.round(newBet * 100) / 100);
 }
 
@@ -522,13 +538,17 @@ function updateGamepadStatus() {
                 else slot.autoPlayCheckbox.checked = false;
                 startBgmListener();
             });
-            checkGamepadTrigger(gamepad, gamepadConfig.killSwitch, () => {
-                killswitch_client = true;
-                updateSymbols();
-            }, () => {
-                killswitch_client = false;
-                updateSymbols();
-            },
+            checkGamepadTrigger(
+                gamepad,
+                gamepadConfig.killSwitch,
+                () => {
+                    killswitch_client = true;
+                    updateSymbols();
+                },
+                () => {
+                    killswitch_client = false;
+                    updateSymbols();
+                },
             );
         }
     }
@@ -550,14 +570,14 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, { intervalId });
+                    gamepadDebounceTimers.set(mapId, {intervalId});
                 }, 800);
-                gamepadDebounceTimers.set(mapId, { timeoutId });
+                gamepadDebounceTimers.set(mapId, {timeoutId});
             }
         } else {
             nfn?.();
             if (gamepadDebounceTimers.has(mapId)) {
-                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
+                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -576,13 +596,13 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, { intervalId });
+                    gamepadDebounceTimers.set(mapId, {intervalId});
                 }, 800);
-                gamepadDebounceTimers.set(mapId, { timeoutId });
+                gamepadDebounceTimers.set(mapId, {timeoutId});
             }
         } else {
             if (gamepadDebounceTimers.has(mapId)) {
-                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
+                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);

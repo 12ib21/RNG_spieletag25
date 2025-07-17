@@ -77,6 +77,8 @@
 </div>
 
 <script>
+    const bgmVolume = 1; // max 1
+
     async function fetchLeaderboard() {
         const response = await fetch('lb.json');
         const data = await response.json();
@@ -110,6 +112,82 @@
 
     fetchLeaderboard();
     setInterval(fetchLeaderboard, 1000);
+
+    let bgmStarted = false;
+    let audioContext, audioBufferStart, audioBufferLoop, sourceNode;
+    let audioLoaded = false;
+
+    function loadAudio() {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        loadBuffer("/leaderboard/Bgm_start.mp3")
+            .then((buffer) => {
+                audioBufferStart = buffer;
+                return loadBuffer("/leaderboard/Bgm_loop.mp3");
+            })
+            .then((buffer) => {
+                audioBufferLoop = buffer;
+                audioLoaded = true;
+            });
+    }
+
+    function loadBuffer(url) {
+        return new Promise((resolve, reject) => {
+            const request = new XMLHttpRequest();
+            request.open("GET", url, true);
+            request.responseType = "arraybuffer";
+
+            request.onload = function () {
+                audioContext.decodeAudioData(
+                    request.response,
+                    function (buffer) {
+                        resolve(buffer);
+                    },
+                    reject,
+                );
+            };
+            request.send();
+        });
+    }
+
+    loadAudio();
+
+    function startBgm(buffer) {
+        if (audioLoaded === false) return;
+        if (buffer) {
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(bgmVolume, 0);
+            sourceNode = audioContext.createBufferSource();
+            sourceNode.buffer = buffer;
+            sourceNode.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            sourceNode.start(0, 0);
+            sourceNode.onended = () => {
+                if (buffer === audioBufferStart) {
+                    startBgm(audioBufferLoop);
+                } else {
+                    startBgm(audioBufferLoop);
+                }
+            };
+        }
+    }
+
+    document.addEventListener("click", startBgmListener);
+    document.addEventListener("keydown", startBgmListener);
+    document.addEventListener("touchstart", startBgmListener);
+
+    function startBgmListener() {
+        if (bgmStarted === true) return;
+        bgmStarted = true;
+        if (audioLoaded === true) startBgm(audioBufferStart);
+        else {
+            const int = setInterval(() => {
+                if (audioLoaded === true) {
+                    startBgm(audioBufferStart);
+                    clearInterval(int);
+                }
+            }, 100);
+        }
+    }
 </script>
 </body>
 </html>

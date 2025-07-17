@@ -138,6 +138,7 @@
     }
 
     function delete_(name) {
+        if (!confirm(`Leistung von "${name}" löschen?`)) return;
         let jsn = {
             action: "delete",
             name: name,

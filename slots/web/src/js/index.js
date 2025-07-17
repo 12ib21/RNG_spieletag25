@@ -14,8 +14,10 @@ import bohlAllIn from "../assets/sound/voice/all_in.mp3";
 import bohlWalterCombo1 from "../assets/sound/voice/waltercombo1.mp3";
 import bohlWalterCombo2 from "../assets/sound/voice/waltercombo2.mp3";
 import bohlWalterCombo3 from "../assets/sound/voice/waltercombo3.mp3";
-import bohlSmallWin from "../assets/sound/voice/small_win.mp3";
-import bohlMediumWin from "../assets/sound/voice/medium_win.mp3";
+import bohlSmallWin1 from "../assets/sound/voice/small_win1.mp3";
+import bohlSmallWin2 from "../assets/sound/voice/small_win2.mp3";
+import bohlMediumWin1 from "../assets/sound/voice/medium_win1.mp3";
+import bohlMediumWin2 from "../assets/sound/voice/medium_win2.mp3";
 import bohlBigWin from "../assets/sound/voice/big_win.mp3";
 import bohlJackpot from "../assets/sound/voice/jackpot.mp3";
 import bohlPleite from "..//assets/sound/voice/pleite.mp3";
@@ -24,6 +26,8 @@ import bohlAmbient2 from "../assets/sound/voice/ambient2.mp3";
 import bohlAmbient3 from "../assets/sound/voice/ambient3.mp3";
 
 const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];
+const mediumWinSounds = [bohlMediumWin1, bohlMediumWin2];
+const basicWinSounds = [bohlSmallWin1, bohlSmallWin2];
 const ambientSounds = [bohlAmbient1, bohlAmbient2, bohlAmbient3];
 
 const windowTitle = document.title;
@@ -213,9 +217,10 @@ const config = {
             console.log(winType);
             if (winAmount < 0) {
                 if (window.killswitch === false) {
-                    if (walterComboSounds.length === 0) return;
-                    const randomIndex = Math.floor(Math.random() * walterComboSounds.length);
-                    playSound(walterComboSounds[randomIndex], bohlVolume);
+                    if (walterComboSounds.length !== 0) {
+                        const randomIndex = Math.floor(Math.random() * walterComboSounds.length);
+                        playSound(walterComboSounds[randomIndex], bohlVolume);
+                    }
                 } else playSound(looseSfx, sfxVolume);
             }
 
@@ -237,13 +242,19 @@ const config = {
                     if (winAmount > 0) setTimeout(() => {
                         playSound(smallMediumWinSfx, sfxVolume / 2);
                     }, 500);
-                    playSound(bohlMediumWin, bohlVolume);
+                    if (mediumWinSounds.length !== 0) {
+                        const randomIndex = Math.floor(Math.random() * mediumWinSounds.length);
+                        playSound(mediumWinSounds[randomIndex], bohlVolume);
+                    }
                     break;
                 case "basic":
                     if (winAmount > 0) setTimeout(() => {
                         playSound(smallMediumWinSfx, sfxVolume / 2);
                     }, 500);
-                    playSound(bohlSmallWin, bohlVolume);
+                    if (basicWinSounds.length !== 0) {
+                        const randomIndex = Math.floor(Math.random() * basicWinSounds.length);
+                        playSound(basicWinSounds[randomIndex], bohlVolume);
+                    }
                     break;
             }
             setTimeout(() => {

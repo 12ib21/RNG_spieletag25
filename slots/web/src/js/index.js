@@ -294,7 +294,7 @@ const config = {
             }, 2000);
         } else {
             if (window.killswitch === false) {
-                if (looseSounds.length !== 0) {
+                if (looseSounds.length !== 0 && slot.currentBalance > 0) {
                     const randomIndex = Math.floor(Math.random() * looseSounds.length);
                     playSound(looseSounds[randomIndex], bohlVolume);
                 }

@@ -54,7 +54,6 @@ const MAX_COIN_AUFLADUNG = 1000000;
 const bgmVolume = 0.25; // max 1
 const sfxVolume = 0.5; // max 1
 const bohlVolume = 1; // max 1
-const bohlAmbientVolume = 1; // max 1
 const bohlIdleVolume = 1; // max 1
 const delayUntilIdleSounds = 15; // s
 const maxSelectableBet = 10000; // all in zählt seperat

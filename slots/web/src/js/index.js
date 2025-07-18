@@ -234,16 +234,17 @@ const config = {
     onSpinEnd: (winType, winAmount) => {
         if (winAmount !== 0) {
             console.log(winType);
+            let playBohlSound = true;
             if (winAmount < 0) {
                 if (window.killswitch === false) {
                     if (walterComboSounds.length !== 0) {
                         const randomIndex = Math.floor(Math.random() * walterComboSounds.length);
                         playSound(walterComboSounds[randomIndex], bohlVolume);
+                        playBohlSound = false;
                     }
                 } else playSound(looseSfx, sfxVolume);
             }
 
-            let playBohlSound = true;
             if (window.isRothWin === true) {
                 window.isRothWin = false;
                 playBohlSound = false;
@@ -656,14 +657,14 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, { intervalId });
+                    gamepadDebounceTimers.set(mapId, {intervalId});
                 }, 800);
-                gamepadDebounceTimers.set(mapId, { timeoutId });
+                gamepadDebounceTimers.set(mapId, {timeoutId});
             }
         } else {
             nfn?.();
             if (gamepadDebounceTimers.has(mapId)) {
-                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
+                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -682,13 +683,13 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                     const intervalId = setInterval(() => {
                         fn?.();
                     }, 25);
-                    gamepadDebounceTimers.set(mapId, { intervalId });
+                    gamepadDebounceTimers.set(mapId, {intervalId});
                 }, 800);
-                gamepadDebounceTimers.set(mapId, { timeoutId });
+                gamepadDebounceTimers.set(mapId, {timeoutId});
             }
         } else {
             if (gamepadDebounceTimers.has(mapId)) {
-                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
+                const {timeoutId, intervalId} = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);

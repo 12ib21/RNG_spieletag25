@@ -22,7 +22,7 @@ const port = new SerialPort({
 
 const clients = [
     {
-        name: "localhost_windows",
+        name: "localhost_win",
         ip: "::1",
         muenzomat: true,
         infos: {
@@ -71,23 +71,15 @@ const clients = [
     },
     {
         name: "Rot",
-        ip: "192.168.2.2",
-        muenzomat: false,
-        infos: {
-            musik: true,
-        },
-    },
-    {
-        name: "Gruen",
-        ip: "192.168.2.3",
+        ip: "192.168.2.4",
         muenzomat: false,
         infos: {
             musik: false,
         },
     },
     {
-        name: "hnd",
-        ip: "192.168.179.67",
+        name: "Gruen",
+        ip: "192.168.2.10",
         muenzomat: false,
         infos: {
             musik: false,

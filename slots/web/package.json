@@ -1,7 +1,7 @@
 {
   "name": "slot-machine-for-rng-spieletag-25",
   "description": "Modern casino slot machine game based on a central server backend using only plain JavaScript with hardware coin input",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "license": "MIT",
   "author": "Iren Biggel",
   "repository": "12ib21/RNG_spieletag25",

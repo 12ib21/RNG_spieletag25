@@ -596,7 +596,6 @@ window.addEventListener("keydown", (e) => {
 });
 
 let lastInsert = Date.now() - coinInsertCooldown;
-let lastInsert = Date.now() - coinInsertCooldown;
 function updateGamepadStatus() {
     const gamepads = navigator.getGamepads();
 

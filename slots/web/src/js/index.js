@@ -59,6 +59,8 @@ const delayUntilIdleSounds = 15; // s
 const maxSelectableBet = 10000; // all in zählt seperat
 const coinInsertCooldown = 100; // 100ms
 const coinInsertAddAmount = 25; // +10€ für beliebige Münze
+const coinInsertCooldown = 100; // 100ms
+const coinInsertAddAmount = 25; // +10€ für beliebige Münze
 const autoFullscreen = true;
 const preventDevTools = true;
 const keyConfig = {
@@ -80,6 +82,7 @@ const gamepadConfig = {
     killSwitch: "B11",
     autoplay: "A1-1",
     autoplayOff: "A11",
+    coinInsterted: "B2",
     coinInsterted: "B2",
 };
 const WEBSOCKET_TIMEOUT = 1500;
@@ -593,6 +596,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 let lastInsert = Date.now() - coinInsertCooldown;
+let lastInsert = Date.now() - coinInsertCooldown;
 function updateGamepadStatus() {
     const gamepads = navigator.getGamepads();
 
@@ -669,12 +673,15 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                         fn?.();
                     }, 25);
                     gamepadDebounceTimers.set(mapId, { intervalId });
+                    gamepadDebounceTimers.set(mapId, { intervalId });
                 }, 800);
+                gamepadDebounceTimers.set(mapId, { timeoutId });
                 gamepadDebounceTimers.set(mapId, { timeoutId });
             }
         } else {
             nfn?.();
             if (gamepadDebounceTimers.has(mapId)) {
+                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
@@ -695,11 +702,14 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                         fn?.();
                     }, 25);
                     gamepadDebounceTimers.set(mapId, { intervalId });
+                    gamepadDebounceTimers.set(mapId, { intervalId });
                 }, 800);
+                gamepadDebounceTimers.set(mapId, { timeoutId });
                 gamepadDebounceTimers.set(mapId, { timeoutId });
             }
         } else {
             if (gamepadDebounceTimers.has(mapId)) {
+                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {

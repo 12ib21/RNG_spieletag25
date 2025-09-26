@@ -54,7 +54,7 @@ const MAX_COIN_AUFLADUNG = 1000000;
 const bgmVolume = 0.5; // max 1
 const sfxVolume = 0.75; // max 1
 const bohlVolume = 1; // max 1
-const bohlIdleVolume = 1; // max 1
+const bohlIdleVolume = 0.75; // max 1
 const delayUntilIdleSounds = 15; // s
 const maxSelectableBet = 10000; // all in zählt seperat
 const coinInsertCooldown = 100; // 100ms
@@ -81,7 +81,6 @@ const gamepadConfig = {
     killSwitch: "B11",
     autoplay: "A1-1",
     autoplayOff: "A11",
-    coinInsterted: "B2",
     coinInsterted: "B2",
 };
 const WEBSOCKET_TIMEOUT = 1500;
@@ -306,11 +305,10 @@ const config = {
             } else playSound(looseSfx, sfxVolume / (slot.currentBalance <= 0 ? 2 : 1));
             updateUI();
         }
-        if (slot.currentBalance <= 0 && !pleiteShowing) {
+        if (slot.currentBalance <= 0) {
             setTimeout(
                 () => {
                     playSound(bohlPleite, bohlVolume);
-                    pleiteShowing = true;
                     const winDisplay = document.getElementById("winText");
                     const text = slot.currentBalance < 0 ? "Spende an Herrn Walter<br>um fortzufahren!" : "Spende um fortzufahren!";
                     winDisplay.innerHTML = `Pleite!<br>${text}<br>${(resetCounter / 1000).toFixed(2)}s`;
@@ -320,9 +318,9 @@ const config = {
                         winDisplay.innerHTML = `Pleite!<br>${text}<br>${((resetCounter - (Date.now() - now)) / 1000).toFixed(2)}s`;
                         if ((resetCounter - (Date.now() - now)) <= 0) {
                             winDisplay.innerHTML = `Pleite!<br>${text}<br>${(0).toFixed(2)}s`;
-                            slot.reset(); //! löscht kohle die während rng spin eingeworfen wird!
+                            slot.reset();
                             setTimeout(() => {
-                                setCredits(slot.currentBalance <= 0 && slot.bet == 0);
+                                setCredits(slot.currentBalance <= 0);
                                 setTimeout(() => {
                                     winDisplay.innerHTML = "";
                                     winDisplay.style.animation = "";
@@ -330,7 +328,6 @@ const config = {
                                     updateUI();
                                 }, 500);
                             }, 5500);
-                            pleiteShowing = false;
                             clearInterval(window.slotPleiteCountdownInterval);
                             window.slotPleiteCountdownInterval = null;
                         }
@@ -342,7 +339,6 @@ const config = {
     winVisualizeSvg: winVisualizeSvg,
 };
 
-let pleiteShowing = false;
 let idleSoundQueueId = null;
 
 function queueIdleSound() {
@@ -361,7 +357,7 @@ function queueIdleSound() {
 }
 
 function idleSound() {
-    if (idleSounds.length === 0) return;
+    if (idleSounds.length === 0 || credits === true) return;
     const randomIndex = Math.floor(Math.random() * idleSounds.length);
     playSound(idleSounds[randomIndex], bohlIdleVolume);
 }
@@ -659,15 +655,20 @@ function updateGamepadStatus() {
             });
             checkGamepadTrigger(gamepad, gamepadConfig.coinInsterted, () => {
                 if (credits === true) setCredits(false);
-                slot.autoPlayCheckbox.checked = false;
-                clearInterval(window.slotPleiteCountdownInterval);
-                window.slotPleiteCountdownInterval = null;
                 startBgmListener();
                 if (Date.now() - lastInsert >= coinInsertCooldown) {
                     lastInsert = Date.now();
                     playSound(coinInsertSfx, 1);
                     slot.addBalance(coinInsertAddAmount);
                     updateUI();
+                    setTimeout(() => {
+                        slot.autoPlayCheckbox.checked = false;
+                        if (window.slotPleiteCountdownInterval != null) clearInterval(window.slotPleiteCountdownInterval);
+                        window.slotPleiteCountdownInterval = null;
+                        setTimeout(() => {
+                            winDisplay.style.animation = "";
+                        }, 1);
+                    }, 1);
                 }
             });
             checkGamepadTrigger(

@@ -225,7 +225,7 @@ export default class Slot {
     }
 
     reset() {
-        this.currentBalance = 1;
+        this.currentBalance = 0;
         this.bet = 0;
         this.currentSymbols = [
             [default_symbol, default_symbol, default_symbol],
@@ -239,7 +239,7 @@ export default class Slot {
     }
 
     spin(reset = false) {
-        if (this.isSpinning || this.currentBalance === 0) return;
+        if ((this.isSpinning || this.currentBalance === 0) && reset == false) return;
         if (this.currentBalance < Math.abs(this.bet) && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
             return;
@@ -572,7 +572,6 @@ export default class Slot {
 
     onSpinEnd(symbols, reset = false) {
         if (reset) {
-            this.currentBalance = initialBalance;
             this.bet = initialBet;
             this.currentSymbols = [
                 [default_symbol, default_symbol, default_symbol],

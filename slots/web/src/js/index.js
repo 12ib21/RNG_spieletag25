@@ -59,6 +59,7 @@ const delayUntilIdleSounds = 15; // s
 const maxSelectableBet = 10000; // all in zählt seperat
 const coinInsertCooldown = 100; // 100ms
 const coinInsertAddAmount = 25; // +10€ für beliebige Münze
+const resetCounter = 30000 // nach pleite reload - in ms
 const autoFullscreen = true;
 const preventDevTools = true;
 const keyConfig = {
@@ -205,7 +206,7 @@ document.addEventListener("keydown", startBgmListener);
 document.addEventListener("touchstart", startBgmListener);
 
 function startBgmListener() {
-    if (credits === true) setCredits(false);
+    if (credits === true && slot.currentBalance > 0) setCredits(false);
     if (bgmStarted === true || musicAllowed === false) return;
     bgmStarted = true;
     if (audioLoaded === true) startBgm(audioBufferStart);
@@ -305,17 +306,43 @@ const config = {
             } else playSound(looseSfx, sfxVolume / (slot.currentBalance <= 0 ? 2 : 1));
             updateUI();
         }
-        if (slot.currentBalance <= 0) {
+        if (slot.currentBalance <= 0 && !pleiteShowing) {
             setTimeout(
                 () => {
                     playSound(bohlPleite, bohlVolume);
-                }, winAmount === 0 ? 100 : 1500);
+                    pleiteShowing = true;
+                    const winDisplay = document.getElementById("winText");
+                    const text = slot.currentBalance < 0 ? "Spende an Herrn Walter<br>um fortzufahren!" : "Spende um fortzufahren!";
+                    winDisplay.innerHTML = `Pleite!<br>${text}<br>${(resetCounter / 1000).toFixed(2)}s`;
+                    winDisplay.style.animation = "pop_bleiben 2s forwards";
+                    const now = Date.now();
+                    window.slotPleiteCountdownInterval = setInterval(() => {
+                        winDisplay.innerHTML = `Pleite!<br>${text}<br>${((resetCounter - (Date.now() - now)) / 1000).toFixed(2)}s`;
+                        if ((resetCounter - (Date.now() - now)) <= 0) {
+                            winDisplay.innerHTML = `Pleite!<br>${text}<br>${(0).toFixed(2)}s`;
+                            slot.reset(); //! löscht kohle die während rng spin eingeworfen wird!
+                            setTimeout(() => {
+                                setCredits(slot.currentBalance <= 0 && slot.bet == 0);
+                                setTimeout(() => {
+                                    winDisplay.innerHTML = "";
+                                    winDisplay.style.animation = "";
+                                    slot.autoPlayCheckbox.checked = false;
+                                    updateUI();
+                                }, 500);
+                            }, 5500);
+                            pleiteShowing = false;
+                            clearInterval(window.slotPleiteCountdownInterval);
+                            window.slotPleiteCountdownInterval = null;
+                        }
+                    }, 10);
+                }, winAmount === 0 ? 101 : 2001);
         }
         lastSpin = Date.now();
     },
     winVisualizeSvg: winVisualizeSvg,
 };
 
+let pleiteShowing = false;
 let idleSoundQueueId = null;
 
 function queueIdleSound() {
@@ -449,7 +476,7 @@ let lastAllInTrigger = Date.now() - 2500;
 let lastAllInTriggerDecrease = Date.now() - 2500;
 
 function allIn() {
-    if (slot.isSpinning) return;
+    if (slot.isSpinning || slot.currentBalance <= 0) return;
     if (slot.bet === slot.currentBalance) {
         if (Date.now() - lastAllInTriggerDecrease >= 2500) {
             if (allInDecreaseSounds.length !== 0) {
@@ -498,7 +525,7 @@ function increaseBet() {
     }
     newBet = Math.max(0, Math.min(slot.currentBalance, newBet));
     newBet = Math.round(newBet * 100) / 100;
-    if (newBet === slot.currentBalance) {
+    if (newBet === slot.currentBalance && slot.currentBalance != 0) {
         if (Date.now() - lastAllInTrigger >= 2500) {
             if (allInSounds.length !== 0) {
                 const randomIndex = Math.floor(Math.random() * allInSounds.length);
@@ -513,7 +540,7 @@ function increaseBet() {
 function decreaseBet() {
     if (slot.isSpinning) return;
     const currentBet = slot.bet;
-    if (currentBet === slot.currentBalance) {
+    if (currentBet === slot.currentBalance && slot.currentBalance != 0) {
         if (Date.now() - lastAllInTriggerDecrease >= 2500) {
             if (allInDecreaseSounds.length !== 0) {
                 const randomIndex = Math.floor(Math.random() * allInDecreaseSounds.length);
@@ -582,7 +609,7 @@ window.addEventListener("keydown", (e) => {
             if (res === keyConfig.addEurPass) {
                 try {
                     const balChg = parseFloat(
-                        parseFloat(prompt("Menge?", "10")).toFixed(2),
+                        parseFloat(prompt("Menge?", "100")).toFixed(2),
                     );
                     slot.addBalance(balChg);
                     updateUI();
@@ -632,6 +659,9 @@ function updateGamepadStatus() {
             });
             checkGamepadTrigger(gamepad, gamepadConfig.coinInsterted, () => {
                 if (credits === true) setCredits(false);
+                slot.autoPlayCheckbox.checked = false;
+                clearInterval(window.slotPleiteCountdownInterval);
+                window.slotPleiteCountdownInterval = null;
                 startBgmListener();
                 if (Date.now() - lastInsert >= coinInsertCooldown) {
                     lastInsert = Date.now();

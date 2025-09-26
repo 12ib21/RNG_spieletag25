@@ -224,7 +224,21 @@ export default class Slot {
         this.currentBalance += parseFloat(balance);
     }
 
-    spin() {
+    reset() {
+        this.currentBalance = 1;
+        this.bet = 0;
+        this.currentSymbols = [
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+            [default_symbol, default_symbol, default_symbol],
+        ];
+        this.nextSymbols = this.currentSymbols;
+        this.spin(true);
+    }
+
+    spin(reset = false) {
         if (this.isSpinning || this.currentBalance === 0) return;
         if (this.currentBalance < Math.abs(this.bet) && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
@@ -234,7 +248,7 @@ export default class Slot {
             this.currentBalance -= this.bet;
 
         this.currentSymbols = this.nextSymbols;
-        this.nextSymbols = this.#convertScreenToSlots(this.#generateScreen());
+        if (!reset) this.nextSymbols = this.#convertScreenToSlots(this.#generateScreen());
         this.onSpinStart(this.nextSymbols);
 
         return Promise.all(
@@ -242,7 +256,7 @@ export default class Slot {
                 reel.renderSymbols(this.nextSymbols[reel.idx]);
                 return reel.spin();
             })
-        ).then(() => this.onSpinEnd(this.nextSymbols));
+        ).then(() => this.onSpinEnd(this.nextSymbols, reset));
     }
 
     #generateScreen() {
@@ -556,7 +570,26 @@ export default class Slot {
         this.config.onSpinStart?.(symbols);
     }
 
-    onSpinEnd() {
+    onSpinEnd(symbols, reset = false) {
+        if (reset) {
+            this.currentBalance = initialBalance;
+            this.bet = initialBet;
+            this.currentSymbols = [
+                [default_symbol, default_symbol, default_symbol],
+                [default_symbol, default_symbol, default_symbol],
+                [default_symbol, default_symbol, default_symbol],
+                [default_symbol, default_symbol, default_symbol],
+                [default_symbol, default_symbol, default_symbol],
+            ];
+            this.nextSymbols = this.currentSymbols;
+            this.freeToPlay = false;
+            this.isSpinning = false;
+            this.winAmount = 0;
+            this.nextMatches = null;
+            this.biggestWinType = "";
+            this.externalRtpCorrection = 1;
+            return;
+        }
         const winAmount = this.winAmount;
         const time = this.#visualizeWins();
         this.#addBalance();

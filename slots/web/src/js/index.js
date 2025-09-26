@@ -205,7 +205,6 @@ document.addEventListener("keydown", startBgmListener);
 document.addEventListener("touchstart", startBgmListener);
 
 function startBgmListener() {
-    if (credits === true && slot.currentBalance > 0) setCredits(false);
     if (bgmStarted === true || musicAllowed === false) return;
     bgmStarted = true;
     if (audioLoaded === true) startBgm(audioBufferStart);
@@ -666,7 +665,9 @@ function updateGamepadStatus() {
                         if (window.slotPleiteCountdownInterval != null) clearInterval(window.slotPleiteCountdownInterval);
                         window.slotPleiteCountdownInterval = null;
                         setTimeout(() => {
+                            const winDisplay = document.getElementById("winText");
                             winDisplay.style.animation = "";
+                            winDisplay.innerHTML = "";
                         }, 1);
                     }, 1);
                 }

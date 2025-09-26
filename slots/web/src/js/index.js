@@ -556,7 +556,7 @@ function setBet(betAmount) {
 }
 
 window.addEventListener("keydown", (e) => {
-    if (credits === true) setCredits(false);
+    if (credits === true && slot.currentBalance > 0) setCredits(false);
     else {
         const key = e.key.toLowerCase();
         console.log(key);
@@ -601,32 +601,32 @@ function updateGamepadStatus() {
         const gamepad = gamepads[i];
         if (gamepad) {
             checkGamepadTrigger(gamepad, gamepadConfig.spin, () => {
-                if (credits === true) setCredits(false);
+                if (credits === true && slot.currentBalance > 0) setCredits(false);
                 else slot.spinButton.click();
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.allIn, () => {
-                if (credits === true) setCredits(false);
+                if (credits === true && slot.currentBalance > 0) setCredits(false);
                 else allIn();
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.lowerBet, () => {
-                if (credits === true) setCredits(false);
+                if (credits === true && slot.currentBalance > 0) setCredits(false);
                 else decreaseBet();
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.increaseBet, () => {
-                if (credits === true) setCredits(false);
+                if (credits === true && slot.currentBalance > 0) setCredits(false);
                 else increaseBet();
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.autoplay, () => {
-                if (credits === true) setCredits(false);
+                if (credits === true && slot.currentBalance > 0) setCredits(false);
                 else slot.autoPlayCheckbox.checked = true;
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.autoplayOff, () => {
-                if (credits === true) setCredits(false);
+                if (credits === true && slot.currentBalance > 0) setCredits(false);
                 else slot.autoPlayCheckbox.checked = false;
                 startBgmListener();
             });

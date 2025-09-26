@@ -59,8 +59,6 @@ const delayUntilIdleSounds = 15; // s
 const maxSelectableBet = 10000; // all in zählt seperat
 const coinInsertCooldown = 100; // 100ms
 const coinInsertAddAmount = 25; // +10€ für beliebige Münze
-const coinInsertCooldown = 100; // 100ms
-const coinInsertAddAmount = 25; // +10€ für beliebige Münze
 const autoFullscreen = true;
 const preventDevTools = true;
 const keyConfig = {
@@ -633,8 +631,11 @@ function updateGamepadStatus() {
                 startBgmListener();
             });
             checkGamepadTrigger(gamepad, gamepadConfig.coinInsterted, () => {
+                if (credits === true) setCredits(false);
+                startBgmListener();
                 if (Date.now() - lastInsert >= coinInsertCooldown) {
                     lastInsert = Date.now();
+                    playSound(coinInsertSfx, 1);
                     slot.addBalance(coinInsertAddAmount);
                     updateUI();
                 }
@@ -681,7 +682,6 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
             nfn?.();
             if (gamepadDebounceTimers.has(mapId)) {
                 const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
-                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -708,7 +708,6 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
             }
         } else {
             if (gamepadDebounceTimers.has(mapId)) {
-                const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 const { timeoutId, intervalId } = gamepadDebounceTimers.get(mapId);
                 clearTimeout(timeoutId);
                 if (intervalId) {

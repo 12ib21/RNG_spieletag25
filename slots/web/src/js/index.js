@@ -44,7 +44,7 @@ const allInSounds = [bohlAllIn1, bohlAllIn2];
 const allInDecreaseSounds = [bohlAllInDecrease1, bohlAllInDecrease2];
 const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];
 const mediumWinSounds = [bohlMediumWin1, bohlMediumWin2];
-const basicWinSounds = [bohlSmallWin1, bohlSmallWin2];
+const basicWinSounds = [bohlSmallWin1, bohlSmallWin2, bohlMediumWin1, bohlMediumWin2];
 const looseSounds = [bohlLoose1, bohlLoose2, bohlLoose3, bohlLoose4, bohlLoose5];
 const idleSounds = [bohlIdle1, bohlIdle2, bohlIdle3, bohlIdle4, bohlIdle5, bohlAmbient1, bohlAmbient2, bohlAmbient4, bohlAmbient5];
 
@@ -52,12 +52,12 @@ const windowTitle = document.title;
 const webSocketPort = 8085;
 const MAX_COIN_AUFLADUNG = 1000000;
 const bgmVolume = 0.5; // max 1
-const sfxVolume = 0.75; // max 1
+const sfxVolume = 0.8; // max 1
 const bohlVolume = 1; // max 1
 const bohlIdleVolume = 0.75; // max 1
 const delayUntilIdleSounds = 15; // s
-const maxSelectableBet = 10000; // all in zählt seperat
-const coinInsertCooldown = 100; // 100ms
+const maxSelectableBet = 50000; // all in zählt seperat
+const coinInsertCooldown = 250; // 250ms
 const coinInsertAddAmount = 25; // +10€ für beliebige Münze
 const resetCounter = 30000 // nach pleite reload - in ms
 const autoFullscreen = true;
@@ -658,6 +658,7 @@ function updateGamepadStatus() {
                 if (Date.now() - lastInsert >= coinInsertCooldown) {
                     lastInsert = Date.now();
                     playSound(coinInsertSfx, 1);
+                    if (slot.currentBalance < 0) slot.setBalance(0);
                     slot.addBalance(coinInsertAddAmount);
                     updateUI();
                     setTimeout(() => {

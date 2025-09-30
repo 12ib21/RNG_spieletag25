@@ -2,12 +2,12 @@ import Reel from "./Reel.js";
 import Symbol from "./Symbol.js";
 import rng from "./trueRNG.js";
 
-const rtpCorrection = 0.35;
-const winFrequency = 40; // %
+const rtpCorrection = 0.30;
+const winFrequency = 55; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
-const mediumWinChance = 35 // %
-const bigWinChance = 14.9 // %
+const mediumWinChance = 25 // %
+const bigWinChance = 9.9 // %
 const jackpotChance = 0.1 // %
 
 const initialBalance = 0; // €

@@ -3,7 +3,7 @@ import Symbol from "./Symbol.js";
 import rng from "./trueRNG.js";
 
 const rtpCorrection = 0.30;
-const winFrequency = 55; // %
+const winFrequency = 50; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
 const mediumWinChance = 25 // %

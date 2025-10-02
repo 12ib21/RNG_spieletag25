@@ -51,13 +51,13 @@ const idleSounds = [bohlIdle1, bohlIdle2, bohlIdle3, bohlIdle4, bohlIdle5, bohlA
 const windowTitle = document.title;
 const webSocketPort = 8085;
 const MAX_COIN_AUFLADUNG = 1000000;
-const bgmVolume = 0.5; // max 1
+const bgmVolume = 0.7; // max 1
 const sfxVolume = 0.8; // max 1
 const bohlVolume = 1; // max 1
 const bohlIdleVolume = 0.75; // max 1
-const delayUntilIdleSounds = 15; // s
+const delayUntilIdleSounds = 10; // s
 const maxSelectableBet = 50000; // all in zählt seperat
-const coinInsertCooldown = 250; // 250ms
+const coinInsertCooldown = 500; // 250ms
 const coinInsertAddAmount = 25; // +10€ für beliebige Münze
 const resetCounter = 30000 // nach pleite reload - in ms
 const autoFullscreen = true;
@@ -191,10 +191,12 @@ function startBgm(buffer) {
         gainNode.connect(audioContext.destination);
         sourceNode.start(0, 0);
         sourceNode.onended = () => {
-            if (buffer === audioBufferStart) {
-                startBgm(audioBufferLoop);
-            } else {
-                startBgm(audioBufferLoop);
+            if (bgmStarted == true) {
+                if (buffer === audioBufferStart) {
+                    startBgm(audioBufferLoop);
+                } else {
+                    startBgm(audioBufferLoop);
+                }
             }
         };
     }
@@ -204,8 +206,13 @@ document.addEventListener("click", startBgmListener);
 document.addEventListener("keydown", startBgmListener);
 document.addEventListener("touchstart", startBgmListener);
 
+function stopBgm() {
+    bgmStarted = false;
+    sourceNode.stop();
+}
+
 function startBgmListener() {
-    if (bgmStarted === true || musicAllowed === false) return;
+    if (bgmStarted === true || musicAllowed === false || slot.currentBalance <= 0) return;
     bgmStarted = true;
     if (audioLoaded === true) startBgm(audioBufferStart);
     else {
@@ -325,6 +332,7 @@ const config = {
                                     winDisplay.style.animation = "";
                                     slot.autoPlayCheckbox.checked = false;
                                     updateUI();
+                                    stopBgm();
                                 }, 500);
                             }, 5500);
                             clearInterval(window.slotPleiteCountdownInterval);
@@ -500,7 +508,7 @@ function allIn() {
 }
 
 function increaseBet() {
-    if (slot.isSpinning) return;
+    if (slot.isSpinning || slot.currentBalance <= 0) return;
     const currentBet = slot.bet;
     let newBet;
     if (currentBet < 0.05) {
@@ -518,7 +526,7 @@ function increaseBet() {
     } else {
         newBet = Math.min(currentBet + 100, maxSelectableBet);
     }
-    newBet = Math.max(0, Math.min(slot.currentBalance, newBet));
+    newBet = Math.max(0.01, Math.min(slot.currentBalance, newBet));
     newBet = Math.round(newBet * 100) / 100;
     if (newBet === slot.currentBalance && slot.currentBalance != 0) {
         if (Date.now() - lastAllInTrigger >= 2500) {
@@ -533,7 +541,7 @@ function increaseBet() {
 }
 
 function decreaseBet() {
-    if (slot.isSpinning) return;
+    if (slot.isSpinning || slot.currentBalance <= 0) return;
     const currentBet = slot.bet;
     if (currentBet === slot.currentBalance && slot.currentBalance != 0) {
         if (Date.now() - lastAllInTriggerDecrease >= 2500) {
@@ -561,7 +569,7 @@ function decreaseBet() {
         newBet = Math.max(currentBet - 0.01, 0.01);
     }
     newBet = Math.max(
-        0,
+        0.01,
         Math.min(slot.currentBalance, Math.min(maxSelectableBet, newBet)),
     );
     setBet(Math.round(newBet * 100) / 100);

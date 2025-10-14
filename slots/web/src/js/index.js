@@ -60,7 +60,7 @@ const maxSelectableBet = 50000; // all in zählt seperat
 const coinInsertCooldown = 500; // 250ms
 const coinInsertAddAmount = 25; // +10€ für beliebige Münze
 const resetCounter = 30000 // nach pleite reload - in ms
-const autoFullscreen = true;
+const autoFullscreen = false;
 const preventDevTools = true;
 const keyConfig = {
     // space: " ", enter: "enter", etc

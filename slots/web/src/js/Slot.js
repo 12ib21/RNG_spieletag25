@@ -461,7 +461,7 @@ export default class Slot {
             winDisplay.innerHTML = `${winAmount > 0 ? "" : `${window.killswitch ? "Schade" : "Waltercombo"}!<br>`}${winTypeText}<br>${winAmount > 0 ? "+" : ""}${winAmount}€ (${(winAmount / this.bet).toFixed(2)}x)`;
             winDisplay.style.animation = "pop 2s forwards";
             setTimeout(() => {
-                winDisplay.style.animation = "";
+                if (this.currentBalance > 0) winDisplay.style.animation = "";
             }, 2000);
         }, Math.max(0, lastDelay + 650));
 

@@ -215,22 +215,31 @@ export default class Slot {
         this.externalRtpCorrection = 1;
     }
 
-    debugSpins(balance, bet, numSpins) {
+    debugSpins(balance, bet, numSpins, pct) {
+        console.clear();
         let spinCnt = 0;
+        let avgPctBet = 0;
         this.currentBalance = balance;
         this.config = {
             inverted: false,
-            onSpinStart: () => { },
+            onSpinStart: (str) => {
+                if (str == "PLEITE") {
+                    console.log(`${spinCnt} Spins überlebt! AvgBet: ${avgPctBet / spinCnt}, Balance: ${this.currentBalance}, Zeit: ${Math.round(spinCnt * 9.75 / 60 * 10) / 10}min / ${Math.round(spinCnt * 9.75 / 60 / 60 * 100) / 100}h`);
+                }
+            },
             onSpinEnd: (winType, winAmount) => {
                 spinCnt++;
-                console.log(`#${spinCnt.toString().padStart(3, "0")} Type: ${winType}, Amount: ${winAmount}€, Balance: ${this.currentBalance}€`);
+                console.log(`#${spinCnt.toString().padStart(3, "0")} Type: ${winType}, Bet: ${this.bet}, Amount: ${winAmount}€, Balance: ${this.currentBalance}€`);
                 if (this.currentBalance > 0 && spinCnt < numSpins) {
+                    if (bet == 0) this.bet = Math.max(this.currentBalance * pct, 0.5);
+                    avgPctBet += this.bet;
                     setTimeout(() => this.spin(false, true), 0);
-                }
+                } else console.log(`${spinCnt} Spins überlebt! AvgBet: ${avgPctBet / spinCnt}, Balance: ${this.currentBalance}, Zeit: ${Math.round(spinCnt * 9.75 / 60 * 10) / 10}min / ${Math.round(spinCnt * 9.75 / 60 / 60 * 100) / 100}h`);
             },
             winVisualizeSvg: document.createElement("svg"),
         };
-        this.bet = bet;
+        if (bet == 0) this.bet = this.currentBalance * pct;
+        else this.bet = bet;
         this.spin(false, true);
     }
 
@@ -260,6 +269,7 @@ export default class Slot {
         if ((this.isSpinning || this.currentBalance === 0) && reset == false) return;
         if (this.currentBalance < Math.abs(this.bet) && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
+            if (DEBUG_SPIN) this.config.onSpinStart?.("PLEITE");
             return;
         }
         if (this.freeToPlay === false)

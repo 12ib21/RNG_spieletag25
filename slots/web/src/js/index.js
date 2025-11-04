@@ -57,11 +57,13 @@ const bohlVolume = 1; // max 1
 const bohlIdleVolume = 0.75; // max 1
 const delayUntilIdleSounds = 10; // s
 const maxSelectableBet = 50000; // all in zählt seperat
+const minSelectableBet = 0.5;
 const coinInsertCooldown = 500; // 250ms
 const coinInsertAddAmount = 25; // +10€ für beliebige Münze
 const resetCounter = 30000 // nach pleite reload - in ms
 const autoFullscreen = false;
 const preventDevTools = true;
+const DEBUG = true;
 const keyConfig = {
     // space: " ", enter: "enter", etc
     spin: " ",
@@ -398,16 +400,17 @@ setTimeout(updateUI, 1000);
 const slot = new Slot(document.getElementById("slot"), config);
 let jackpot = slot.calcJackpotAmount();
 let oldBet = slot.bet;
+if (DEBUG == true) window.slot = slot;
 queueIdleSound();
 
 // WebSocket connection to server
 let socketLastReceived = Date.now();
-setInterval(() => {
-    if (Date.now() - socketLastReceived >= WEBSOCKET_TIMEOUT) {
-        console.log("Websocket timeout, reconnecting..");
-        initWebSocket();
-    }
-}, 1000);
+// setInterval(() => {
+    // if (Date.now() - socketLastReceived >= WEBSOCKET_TIMEOUT) {
+        // console.log("Websocket timeout, reconnecting..");
+        // initWebSocket();
+    // }
+// }, 1000);
 updateGamepadStatus();
 
 function initWebSocket() {
@@ -488,7 +491,7 @@ function allIn() {
             }
             lastAllInTriggerDecrease = Date.now();
         }
-        setBet(oldBet);
+        setBet(Math.round(Math.max(Math.min(oldBet, slot.currentBalance), slot.currentBalance) * 100) / 100);
     } else {
         setBet(Math.max(0, slot.currentBalance));
         const winDisplay = document.getElementById("winText");
@@ -511,9 +514,7 @@ function increaseBet() {
     if (slot.isSpinning || slot.currentBalance <= 0) return;
     const currentBet = slot.bet;
     let newBet;
-    if (currentBet < 0.05) {
-        newBet = Math.min(currentBet + 0.01, maxSelectableBet);
-    } else if (currentBet < 1) {
+    if (currentBet < 1) {
         newBet = Math.min(currentBet + 0.05, maxSelectableBet);
     } else if (currentBet < 10) {
         newBet = Math.min(currentBet + 0.5, maxSelectableBet);
@@ -527,6 +528,8 @@ function increaseBet() {
         newBet = Math.min(currentBet + 100, maxSelectableBet);
     }
     newBet = Math.max(0.01, Math.min(slot.currentBalance, newBet));
+    if (slot.currentBalance < minSelectableBet) newBet = slot.currentBalance;
+    if (slot.bet < slot.currentBalance && slot.currentBalance < minSelectableBet) newBet = minSelectableBet;
     newBet = Math.round(newBet * 100) / 100;
     if (newBet === slot.currentBalance && slot.currentBalance != 0) {
         if (Date.now() - lastAllInTrigger >= 2500) {
@@ -554,19 +557,19 @@ function decreaseBet() {
     }
     let newBet;
     if (currentBet > 1000) {
-        newBet = Math.max(currentBet - 100, 0.01);
+        newBet = Math.max(currentBet - 100, minSelectableBet);
     } else if (currentBet > 500) {
-        newBet = Math.max(currentBet - 50, 0.01);
+        newBet = Math.max(currentBet - 50, minSelectableBet);
     } else if (currentBet > 100) {
-        newBet = Math.max(currentBet - 10, 0.01);
+        newBet = Math.max(currentBet - 10, minSelectableBet);
     } else if (currentBet > 10) {
-        newBet = Math.max(currentBet - 5, 0.01);
+        newBet = Math.max(currentBet - 5, minSelectableBet);
     } else if (currentBet > 1) {
-        newBet = Math.max(currentBet - 0.5, 0.01);
+        newBet = Math.max(currentBet - 0.5, minSelectableBet);
     } else if (currentBet > 0.05) {
-        newBet = Math.max(currentBet - 0.05, 0.01);
+        newBet = Math.max(currentBet - 0.05, minSelectableBet);
     } else {
-        newBet = Math.max(currentBet - 0.01, 0.01);
+        newBet = Math.max(currentBet - 0.01, minSelectableBet);
     }
     newBet = Math.max(
         0.01,
@@ -668,6 +671,7 @@ function updateGamepadStatus() {
                     playSound(coinInsertSfx, 1);
                     if (slot.currentBalance < 0) slot.setBalance(0);
                     slot.addBalance(coinInsertAddAmount);
+                    if (slot.bet < minSelectableBet) setBet(Math.max(minSelectableBet, slot.bet));
                     updateUI();
                     setTimeout(() => {
                         slot.autoPlayCheckbox.checked = false;

@@ -4,10 +4,10 @@ const rewardBasic = 1;
 const rewardBonus = 2;
 const rewardLegendary = 5;
 
-const chanceLegendary = 10;
-const chanceBonus = 20;
-const chanceBasic = 70;
-const WALTER_MULTIPLIER = -0.5;
+const chanceLegendary = 7;
+const chanceBonus = 13;
+const chanceBasic = 80;
+const WALTER_MULTIPLIER = -1;
 
 const numLegendary = 2;
 const numBonus = 2;

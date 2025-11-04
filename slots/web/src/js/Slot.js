@@ -7,7 +7,7 @@ const winFrequency = 50; // %
 // Alle wins nur alle winFrequency mal
 // die restlichen prozente gehen an small wins
 const mediumWinChance = 25 // %
-const bigWinChance = 9.9 // %
+const bigWinChance = 6.9 // %
 const jackpotChance = 0.1 // %
 
 const initialBalance = 0; // €
@@ -30,13 +30,13 @@ const winningPatterns = {
             ["+", "-"],
             ["-", "+"],
             ["+", "-"],
-            3
+            2
         ],
         [
             ["-", "+"],
             ["+", "-"],
             ["-", "+"],
-            3
+            2
         ],
     ],
     medium: [
@@ -44,41 +44,41 @@ const winningPatterns = {
             ["+", "-", "-"],
             ["-", "+", "-"],
             ["-", "-", "+"],
-            7
+            4.5
         ],
         [
             ["-", "-", "+"],
             ["-", "+", "-"],
             ["+", "-", "-"],
-            7
+            4.5
         ],
         [
             ["-", "+", "-"],
             ["+", "-", "+"],
-            5
+            3
         ],
         [
             ["+", "-", "+"],
             ["-", "+", "-"],
-            5
+            3
         ],
     ],
     big: [
         [
             ["+", "+", "+", "+", "+"],
-            20
+            18
         ],
         [
             ["+", "-", "-", "-", "-"],
             ["-", "+", "+", "+", "-"],
             ["-", "-", "-", "-", "+"],
-            40
+            35
         ],
         [
             ["-", "-", "-", "-", "+"],
             ["-", "+", "+", "+", "-"],
             ["+", "-", "-", "-", "-"],
-            40
+            35
         ],
     ],
     jackpot: [
@@ -86,7 +86,7 @@ const winningPatterns = {
             ["+", "+", "+", "+", "+"],
             ["+", "+", "+", "+", "+"],
             ["+", "+", "+", "+", "+"],
-            1500
+            1000
         ],
     ]
 };
@@ -173,7 +173,6 @@ const colorPalette = [
     "purple"
 ];
 
-
 export default class Slot {
     constructor(domElement, config = {}) {
         Symbol.preload();
@@ -216,6 +215,25 @@ export default class Slot {
         this.externalRtpCorrection = 1;
     }
 
+    debugSpins(balance, bet, numSpins) {
+        let spinCnt = 0;
+        this.currentBalance = balance;
+        this.config = {
+            inverted: false,
+            onSpinStart: () => { },
+            onSpinEnd: (winType, winAmount) => {
+                spinCnt++;
+                console.log(`#${spinCnt.toString().padStart(3, "0")} Type: ${winType}, Amount: ${winAmount}€, Balance: ${this.currentBalance}€`);
+                if (this.currentBalance > 0 && spinCnt < numSpins) {
+                    setTimeout(() => this.spin(false, true), 0);
+                }
+            },
+            winVisualizeSvg: document.createElement("svg"),
+        };
+        this.bet = bet;
+        this.spin(false, true);
+    }
+
     setBalance(balance) {
         this.currentBalance = parseFloat(balance);
     }
@@ -238,7 +256,7 @@ export default class Slot {
         this.spin(true);
     }
 
-    spin(reset = false) {
+    spin(reset = false, DEBUG_SPIN = false) {
         if ((this.isSpinning || this.currentBalance === 0) && reset == false) return;
         if (this.currentBalance < Math.abs(this.bet) && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
@@ -251,12 +269,16 @@ export default class Slot {
         if (!reset) this.nextSymbols = this.#convertScreenToSlots(this.#generateScreen());
         this.onSpinStart(this.nextSymbols);
 
-        return Promise.all(
-            this.reels.map((reel) => {
-                reel.renderSymbols(this.nextSymbols[reel.idx]);
-                return reel.spin();
-            })
-        ).then(() => this.onSpinEnd(this.nextSymbols, reset));
+        if (DEBUG_SPIN) {
+            this.onSpinEnd(this.nextSymbols, reset, DEBUG_SPIN);
+        } else {
+            return Promise.all(
+                this.reels.map((reel) => {
+                    reel.renderSymbols(this.nextSymbols[reel.idx]);
+                    return reel.spin();
+                })
+            ).then(() => this.onSpinEnd(this.nextSymbols, reset, DEBUG_SPIN))
+        };
     }
 
     #generateScreen() {
@@ -271,13 +293,12 @@ export default class Slot {
         let startCol = this.#getRandomInt(mvH) // Ensure it fits horizontally
         if (patternRows === 3) startRow = 0;
         if (patternCols === 5) startCol = 0;
-        console.log(`row: ${startRow}, col: ${startCol}`);
         this.#placePattern(screen, winningPattern, startRow, startCol);
 
         // Fill remaining spaces with random symbols
         const winningSymbol = Symbol.random();
         for (let row = 0; row < 3; row++) {
-            console.log(screen[row]);
+            // console.log(screen[row]);
             for (let col = 0; col < 5; col++) {
                 if (screen[row][col] === "X") {
                     screen[row][col] = winningSymbol;
@@ -286,7 +307,7 @@ export default class Slot {
                 }
             }
         }
-        console.log(screen);
+        // console.log(screen);
         return screen;
     }
 
@@ -458,7 +479,7 @@ export default class Slot {
             // gewinnmenge anzeigen
             const winDisplay = document.getElementById("winText");
             const winTypeText = `${this.#capitalizeFirstLetter(this.biggestWinType)} ${winAmount > 0 ? "Win" : "Loss"}!`;
-            winDisplay.innerHTML = `${winAmount > 0 ? "" : `${window.killswitch ? "Schade" : "Waltercombo"}!<br>`}${winTypeText}<br>${winAmount > 0 ? "+" : ""}${winAmount}€ (${(winAmount / this.bet).toFixed(2)}x)`;
+            winDisplay.innerHTML = `${winAmount > 0 ? "" : `${window.killswitch ? "Schade" : "Waltercombo"}!<br>`}${winTypeText}<br>${winAmount > 0 ? "+" : ""}${winAmount}€ (${Math.round((winAmount / this.bet) * 100)}%)`;
             winDisplay.style.animation = "pop 2s forwards";
             setTimeout(() => {
                 if (this.currentBalance > 0) winDisplay.style.animation = "";
@@ -507,6 +528,7 @@ export default class Slot {
 
     #addBalance() {
         this.currentBalance += this.winAmount;
+        this.currentBalance = Math.round(this.currentBalance * 100) / 100;
         this.winAmount = 0;
     }
 
@@ -570,7 +592,7 @@ export default class Slot {
         this.config.onSpinStart?.(symbols);
     }
 
-    onSpinEnd(symbols, reset = false) {
+    onSpinEnd(symbols, reset = false, DEBUG_SPIN = false) {
         if (reset) {
             this.bet = initialBet;
             this.currentSymbols = [
@@ -589,20 +611,28 @@ export default class Slot {
             this.externalRtpCorrection = 1;
             return;
         }
-        const winAmount = this.winAmount;
-        const time = this.#visualizeWins();
-        this.#addBalance();
-        setTimeout(() => {
+        if (DEBUG_SPIN) {
+            this.#addBalance();
+            const winAmount = this.winAmount;
+            this.isSpinning = false;
+            this.spinButton.disabled = false;
             this.config.onSpinEnd?.(this.biggestWinType, winAmount);
+        } else {
+            const winAmount = this.winAmount;
+            const time = this.#visualizeWins();
+            this.#addBalance();
             setTimeout(() => {
-                this.isSpinning = false;
-                this.spinButton.disabled = false;
-                if (this.autoPlayCheckbox.checked) {
-                    return window.setTimeout(() => {
-                        if (this.autoPlayCheckbox.checked === true) this.spin();
-                    }, winAmount === 0 ? 0 : 1000);
-                }
-            }, 2500);
-        }, Math.max(0, time / 2 - 2000));
+                this.config.onSpinEnd?.(this.biggestWinType, winAmount);
+                setTimeout(() => {
+                    this.isSpinning = false;
+                    this.spinButton.disabled = false;
+                    if (this.autoPlayCheckbox.checked) {
+                        return window.setTimeout(() => {
+                            if (this.autoPlayCheckbox.checked === true) this.spin();
+                        }, winAmount === 0 ? 0 : 1000);
+                    }
+                }, 2500);
+            }, Math.max(0, time / 2 - 2000));
+        }
     }
 }

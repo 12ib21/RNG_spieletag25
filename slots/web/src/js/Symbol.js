@@ -46,7 +46,7 @@ export default class Symbol {
             "breuer",
             "knape",
             "kob",
-            "krauss",
+            "petra",
             "moehrle",
             "temmel",
             "volker",

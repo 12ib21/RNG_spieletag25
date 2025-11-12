@@ -45,7 +45,7 @@ const allInDecreaseSounds = [bohlAllInDecrease1, bohlAllInDecrease2];
 const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];
 const mediumWinSounds = [bohlMediumWin1, bohlMediumWin2];
 const basicWinSounds = [bohlSmallWin1, bohlSmallWin2, bohlMediumWin1, bohlMediumWin2];
-const looseSounds = [bohlLoose1, bohlLoose2, bohlLoose3, bohlLoose4, bohlLoose5];
+const looseSounds = [bohlLoose1, bohlLoose1, bohlLoose2, bohlLoose3, bohlLoose3, bohlLoose3, bohlLoose4, bohlLoose4, bohlLoose5];
 const idleSounds = [bohlIdle1, bohlIdle2, bohlIdle3, bohlIdle4, bohlIdle5, bohlAmbient1, bohlAmbient2, bohlAmbient4, bohlAmbient5];
 
 const windowTitle = document.title;
@@ -716,7 +716,7 @@ function checkGamepadTrigger(gamepad, cfg, fn, nfn) {
                 const timeoutId = setTimeout(() => {
                     const intervalId = setInterval(() => {
                         fn?.();
-                    }, 25);
+                    }, 10);
                     gamepadDebounceTimers.set(mapId, { intervalId });
                     gamepadDebounceTimers.set(mapId, { intervalId });
                 }, 800);

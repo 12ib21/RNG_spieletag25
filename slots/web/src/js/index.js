@@ -43,8 +43,8 @@ import bohlRothWin from "../assets/sound/voice/roth_win.mp3";
 const allInSounds = [bohlAllIn1, bohlAllIn2];
 const allInDecreaseSounds = [bohlAllInDecrease1, bohlAllInDecrease2];
 const walterComboSounds = [bohlWalterCombo1, bohlWalterCombo2, bohlWalterCombo3];
-const mediumWinSounds = [bohlMediumWin1, bohlMediumWin2];
-const basicWinSounds = [bohlSmallWin1, bohlSmallWin2, bohlMediumWin1, bohlMediumWin2];
+const mediumWinSounds = [bohlSmallWin1, bohlSmallWin2, bohlMediumWin1, bohlMediumWin2];
+const basicWinSounds = mediumWinSounds;
 const looseSounds = [bohlLoose1, bohlLoose1, bohlLoose2, bohlLoose3, bohlLoose3, bohlLoose3, bohlLoose4, bohlLoose4, bohlLoose5];
 const idleSounds = [bohlIdle1, bohlIdle2, bohlIdle3, bohlIdle4, bohlIdle5, bohlAmbient1, bohlAmbient2, bohlAmbient4, bohlAmbient5];
 
@@ -308,6 +308,7 @@ const config = {
             if (window.killswitch === false) {
                 if (looseSounds.length !== 0 && slot.currentBalance > 0) {
                     const randomIndex = Math.floor(Math.random() * looseSounds.length);
+                    playSound(looseSfx, sfxVolume / (slot.currentBalance <= 0 ? 2 : 1));
                     playSound(looseSounds[randomIndex], bohlVolume);
                 }
             } else playSound(looseSfx, sfxVolume / (slot.currentBalance <= 0 ? 2 : 1));
@@ -406,10 +407,10 @@ queueIdleSound();
 // WebSocket connection to server
 let socketLastReceived = Date.now();
 // setInterval(() => {
-    // if (Date.now() - socketLastReceived >= WEBSOCKET_TIMEOUT) {
-        // console.log("Websocket timeout, reconnecting..");
-        // initWebSocket();
-    // }
+// if (Date.now() - socketLastReceived >= WEBSOCKET_TIMEOUT) {
+// console.log("Websocket timeout, reconnecting..");
+// initWebSocket();
+// }
 // }, 1000);
 updateGamepadStatus();
 

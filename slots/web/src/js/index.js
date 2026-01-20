@@ -73,7 +73,7 @@ const keyConfig = {
     killSwitch: "k",
     killSwitchAus: "l",
     addEur: "q",
-    addEurPass: "abisino",
+    addEurPass: "abisinoo",
 };
 const gamepadConfig = {
     spin: "B0",
@@ -830,6 +830,7 @@ window.onresize = () => {
     resizeOverlaySvg(winVisualizeSvg);
 };
 
+window.sCf = setCredits;
 function setCredits(state) {
     if (state === true) {
         document.getElementById("credits").classList.remove("credits_off");

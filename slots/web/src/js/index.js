@@ -193,7 +193,7 @@ function startBgm(buffer) {
         gainNode.connect(audioContext.destination);
         sourceNode.start(0, 0);
         sourceNode.onended = () => {
-            if (bgmStarted == true) {
+            if (bgmStarted === true) {
                 if (buffer === audioBufferStart) {
                     startBgm(audioBufferLoop);
                 } else {
@@ -401,7 +401,7 @@ setTimeout(updateUI, 1000);
 const slot = new Slot(document.getElementById("slot"), config);
 let jackpot = slot.calcJackpotAmount();
 let oldBet = slot.bet;
-if (DEBUG == true) window.slot = slot;
+if (DEBUG === true) window.slot = slot;
 queueIdleSound();
 
 // WebSocket connection to server
@@ -532,7 +532,7 @@ function increaseBet() {
     if (slot.currentBalance < minSelectableBet) newBet = slot.currentBalance;
     if (slot.bet < slot.currentBalance && slot.currentBalance < minSelectableBet) newBet = minSelectableBet;
     newBet = Math.round(newBet * 100) / 100;
-    if (newBet === slot.currentBalance && slot.currentBalance != 0) {
+    if (newBet === slot.currentBalance && slot.currentBalance !== 0) {
         if (Date.now() - lastAllInTrigger >= 2500) {
             if (allInSounds.length !== 0) {
                 const randomIndex = Math.floor(Math.random() * allInSounds.length);
@@ -547,7 +547,7 @@ function increaseBet() {
 function decreaseBet() {
     if (slot.isSpinning || slot.currentBalance <= 0) return;
     const currentBet = slot.bet;
-    if (currentBet === slot.currentBalance && slot.currentBalance != 0) {
+    if (currentBet === slot.currentBalance && slot.currentBalance !== 0) {
         if (Date.now() - lastAllInTriggerDecrease >= 2500) {
             if (allInDecreaseSounds.length !== 0) {
                 const randomIndex = Math.floor(Math.random() * allInDecreaseSounds.length);

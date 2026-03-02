@@ -11,7 +11,7 @@ export default class Reel {
 
     this.animation = this.symbolContainer.animate(
       [
-        // We cannot animate translateY & filter at the same time in safari for some reasons,
+        // We cannot animate translateY & filter at the same time in safari for some reason,
         // so we go with animating top & filter instead.
         { top: 0, filter: "blur(0)" },
         { filter: "blur(2px)", offset: 0.5 },

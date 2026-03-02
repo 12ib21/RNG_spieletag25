@@ -223,7 +223,7 @@ export default class Slot {
         this.config = {
             inverted: false,
             onSpinStart: (str) => {
-                if (str == "PLEITE") {
+                if (str === "PLEITE") {
                     console.log(`${spinCnt} Spins überlebt! AvgBet: ${avgPctBet / spinCnt}, Balance: ${this.currentBalance}, Zeit: ${Math.round(spinCnt * 9.75 / 60 * 10) / 10}min / ${Math.round(spinCnt * 9.75 / 60 / 60 * 100) / 100}h`);
                 }
             },
@@ -231,14 +231,14 @@ export default class Slot {
                 spinCnt++;
                 console.log(`#${spinCnt.toString().padStart(3, "0")} Type: ${winType}, Bet: ${this.bet}, Amount: ${winAmount}€, Balance: ${this.currentBalance}€`);
                 if (this.currentBalance > 0 && spinCnt < numSpins) {
-                    if (bet == 0) this.bet = Math.max(this.currentBalance * pct, 0.5);
+                    if (bet === 0) this.bet = Math.max(this.currentBalance * pct, 0.5);
                     avgPctBet += this.bet;
                     setTimeout(() => this.spin(false, true), 0);
                 } else console.log(`${spinCnt} Spins überlebt! AvgBet: ${avgPctBet / spinCnt}, Balance: ${this.currentBalance}, Zeit: ${Math.round(spinCnt * 9.75 / 60 * 10) / 10}min / ${Math.round(spinCnt * 9.75 / 60 / 60 * 100) / 100}h`);
             },
             winVisualizeSvg: document.createElement("svg"),
         };
-        if (bet == 0) this.bet = this.currentBalance * pct;
+        if (bet === 0) this.bet = this.currentBalance * pct;
         else this.bet = bet;
         this.spin(false, true);
     }
@@ -266,7 +266,7 @@ export default class Slot {
     }
 
     spin(reset = false, DEBUG_SPIN = false) {
-        if ((this.isSpinning || this.currentBalance === 0) && reset == false) return;
+        if ((this.isSpinning || this.currentBalance === 0) && reset === false) return;
         if (this.currentBalance < Math.abs(this.bet) && this.freeToPlay === false) {
             console.log("Nicht genug Kohle!");
             if (DEBUG_SPIN) this.config.onSpinStart?.("PLEITE");
@@ -288,7 +288,7 @@ export default class Slot {
                     return reel.spin();
                 })
             ).then(() => this.onSpinEnd(this.nextSymbols, reset, DEBUG_SPIN))
-        };
+        }
     }
 
     #generateScreen() {
